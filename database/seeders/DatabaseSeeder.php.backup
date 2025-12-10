@@ -1,0 +1,620 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Dish;
+use App\Models\Restaurant;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    use WithoutModelEvents;
+
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        // Создаем рестораны и столовые Минска (включая БГУИР)
+        $restaurants = [
+            [
+                'name' => 'Столовая БГУИР',
+                'description' => 'Столовая Белорусского государственного университета информатики и радиоэлектроники',
+                'address' => 'ул. П. Бровки, 6 (главный корпус БГУИР)',
+                'phone' => '+375 (17) 293-80-00',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Кафе "Гости"',
+                'description' => 'Популярное кафе в центре Минска с европейской и белорусской кухней',
+                'address' => 'ул. Интернациональная, 25 (рядом с ул. Гикало)',
+                'phone' => '+375 (29) 123-45-67',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Ресторан "Старое Место"',
+                'description' => 'Исторический ресторан в центре Минска с традиционной белорусской кухней',
+                'address' => 'ул. Революционная, 8 (близко к ул. Гикало)',
+                'phone' => '+375 (17) 227-55-99',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Кафе "Смак Минска"',
+                'description' => 'Сеть кафе с домашней белорусской кухней в центре города',
+                'address' => 'пр. Независимости, 23 (недалеко от ул. Гикало)',
+                'phone' => '+375 (29) 555-12-34',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Столовая БНТУ',
+                'description' => 'Столовая Белорусского национального технического университета',
+                'address' => 'пр. Независимости, 65 (главный корпус БНТУ)',
+                'phone' => '+375 (17) 292-13-45',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Кафе "Трактир"',
+                'description' => 'Традиционный белорусский трактир с аутентичной кухней',
+                'address' => 'ул. Октябрьская, 16 (Верхний город)',
+                'phone' => '+375 (29) 876-54-32',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Ресторан "Минск"',
+                'description' => 'Элегантный ресторан в центре столицы с современной европейской кухней',
+                'address' => 'пр. Независимости, 81 (отель Минск)',
+                'phone' => '+375 (17) 229-19-19',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Кафе "Вкуснятина"',
+                'description' => 'Семейное кафе с домашними обедами и десертами',
+                'address' => 'ул. Максима Богдановича, 12',
+                'phone' => '+375 (29) 345-67-89',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Столовая БГУ',
+                'description' => 'Столовая Белорусского государственного университета',
+                'address' => 'пр. Независимости, 4 (главный корпус БГУ)',
+                'phone' => '+375 (17) 209-51-00',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Ресторан "Пивария"',
+                'description' => 'Немецкая пивная с традиционными блюдами и крафтовым пивом',
+                'address' => 'ул. Козлова, 5 (ТЦ Галилео)',
+                'phone' => '+375 (29) 112-22-33',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Кафе "Зелёное"',
+                'description' => 'Вегетарианское кафе со здоровым питанием и органическими продуктами',
+                'address' => 'ул. Комсомольская, 30',
+                'phone' => '+375 (29) 445-66-77',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Столовая МГЛУ',
+                'description' => 'Столовая Минского государственного лингвистического университета',
+                'address' => 'ул. Захарова, 21',
+                'phone' => '+375 (17) 284-18-00',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Ресторан "Итальянский"',
+                'description' => 'Аутентичная итальянская кухня с пиццей и пастой',
+                'address' => 'ул. Немига, 3 (ТЦ Столица)',
+                'phone' => '+375 (29) 778-88-99',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Кафе "БыстроЕда"',
+                'description' => 'Быстрое питание с белорусскими и европейскими блюдами',
+                'address' => 'ул. Ленина, 15',
+                'phone' => '+375 (29) 999-00-11',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($restaurants as $restaurantData) {
+            Restaurant::create($restaurantData);
+        }
+
+        // Создаем аутентичное меню для каждого типа заведения
+        // Цены в белорусских рублях (BYN), актуальные на 2024 год
+        $dishes = [
+            // ===== СТОЛОВЫЕ (бюджетная студенческая еда) =====
+
+            // Столовая БГУИР (ID 1) - типичная университетская столовая
+            [
+                'restaurant_id' => 1,
+                'name' => 'Борщ',
+                'description' => 'Красный борщ с пампушками',
+                'price' => 3.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 1,
+                'name' => 'Картофельное пюре с котлетой',
+                'description' => 'Картофельное пюре с мясной котлетой',
+                'price' => 4.20,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 1,
+                'name' => 'Гречневая каша',
+                'description' => 'Гречневая каша с маслом',
+                'price' => 2.80,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 1,
+                'name' => 'Студенческий обед',
+                'description' => 'Комплекс: суп + котлета с гарниром + компот',
+                'price' => 6.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 1,
+                'name' => 'Компот',
+                'description' => 'Свежезаваренный компот из сухофруктов',
+                'price' => 1.50,
+                'is_available' => true,
+            ],
+
+            // Столовая БНТУ (ID 5) - технический вуз
+            [
+                'restaurant_id' => 5,
+                'name' => 'Суп харчо',
+                'description' => 'Острый грузинский суп с говядиной',
+                'price' => 4.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 5,
+                'name' => 'Макароны с сосиской',
+                'description' => 'Макароны с сосиской и томатным соусом',
+                'price' => 3.80,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 5,
+                'name' => 'Рис с овощами',
+                'description' => 'Отварной рис с овощным гарниром',
+                'price' => 2.90,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 5,
+                'name' => 'Студенческий комплекс',
+                'description' => 'Суп + второе + напиток',
+                'price' => 7.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 5,
+                'name' => 'Чай с лимоном',
+                'description' => 'Чёрный чай с лимоном',
+                'price' => 2.00,
+                'is_available' => true,
+            ],
+
+            // Столовая БГУ (ID 9) - классический университет
+            [
+                'restaurant_id' => 9,
+                'name' => 'Уха',
+                'description' => 'Рыбный суп с картофелем',
+                'price' => 4.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 9,
+                'name' => 'Гуляш с гречкой',
+                'description' => 'Гуляш из говядины с гречневой кашей',
+                'price' => 5.20,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 9,
+                'name' => 'Овсяная каша',
+                'description' => 'Овсяная каша на молоке с фруктами',
+                'price' => 3.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 9,
+                'name' => 'Комплексный обед',
+                'description' => 'Суп + основное блюдо + салат',
+                'price' => 8.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 9,
+                'name' => 'Йогурт',
+                'description' => 'Натуральный йогурт',
+                'price' => 2.00,
+                'is_available' => true,
+            ],
+
+            // Столовая МГЛУ (ID 12) - лингвистический вуз с международным уклоном
+            [
+                'restaurant_id' => 12,
+                'name' => 'Лагман',
+                'description' => 'Уйгурская лапша с мясом и овощами',
+                'price' => 6.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 12,
+                'name' => 'Плов',
+                'description' => 'Узбекский плов с бараниной',
+                'price' => 7.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 12,
+                'name' => 'Беляши',
+                'description' => 'Татарские пирожки с мясом',
+                'price' => 4.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 12,
+                'name' => 'Чай зелёный',
+                'description' => 'Китайский зелёный чай',
+                'price' => 2.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 12,
+                'name' => 'Халва',
+                'description' => 'Восточная халва',
+                'price' => 3.50,
+                'is_available' => true,
+            ],
+
+            // ===== КАФЕ (семейная атмосфера, десерты, напитки) =====
+
+            // Кафе "Гости" (ID 2) - европейская и белорусская кухня
+            [
+                'restaurant_id' => 2,
+                'name' => 'Драники с грибами',
+                'description' => 'Белорусские драники с лесными грибами и сметаной',
+                'price' => 15.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 2,
+                'name' => 'Цезарь с курицей',
+                'description' => 'Салат с курицей, пармезаном и соусом цезарь',
+                'price' => 22.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 2,
+                'name' => 'Паста карбонара',
+                'description' => 'Итальянская паста с беконом и сливками',
+                'price' => 25.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 2,
+                'name' => 'Капучино',
+                'description' => 'Кофе с молочной пенкой',
+                'price' => 8.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 2,
+                'name' => 'Тирамису',
+                'description' => 'Классический итальянский десерт',
+                'price' => 18.00,
+                'is_available' => true,
+            ],
+
+            // Кафе "Трактир" (ID 6) - традиционный белорусский
+            [
+                'restaurant_id' => 6,
+                'name' => 'Бульба с салом',
+                'description' => 'Отварной картофель с салом и луком',
+                'price' => 12.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 6,
+                'name' => 'Свинина с клецками',
+                'description' => 'Жареная свинина с мучными клецками',
+                'price' => 22.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 6,
+                'name' => 'Драники с мясом',
+                'description' => 'Картофельные оладьи с мясной начинкой',
+                'price' => 16.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 6,
+                'name' => 'Квас',
+                'description' => 'Домашний хлебный квас',
+                'price' => 4.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 6,
+                'name' => 'Мёд с блинами',
+                'description' => 'Блины с мёдом и сметаной',
+                'price' => 14.00,
+                'is_available' => true,
+            ],
+
+            // Кафе "Вкуснятина" (ID 8) - семейное кафе с домашней кухней
+            [
+                'restaurant_id' => 8,
+                'name' => 'Щи',
+                'description' => 'Капустные щи с мясом и сметаной',
+                'price' => 8.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 8,
+                'name' => 'Курица с картофелем',
+                'description' => 'Жареная курица с картофелем и салатом',
+                'price' => 16.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 8,
+                'name' => 'Запеканка творожная',
+                'description' => 'Творожная запеканка с изюмом',
+                'price' => 9.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 8,
+                'name' => 'Чай с лимоном',
+                'description' => 'Чёрный чай с лимоном и мёдом',
+                'price' => 4.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 8,
+                'name' => 'Пирог с яблоками',
+                'description' => 'Домашний яблочный пирог',
+                'price' => 12.00,
+                'is_available' => true,
+            ],
+
+            // Кафе "Зелёное" (ID 11) - вегетарианское кафе
+            [
+                'restaurant_id' => 11,
+                'name' => 'Вегетарианский борщ',
+                'description' => 'Борщ без мяса с фасолью и грибами',
+                'price' => 12.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 11,
+                'name' => 'Киноа с овощами',
+                'description' => 'Киноа с запечёнными овощами и авокадо',
+                'price' => 16.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 11,
+                'name' => 'Тофу стир-фрай',
+                'description' => 'Обжаренный тофу с овощами и соевым соусом',
+                'price' => 18.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 11,
+                'name' => 'Зелёный смузи',
+                'description' => 'Смузи из шпината, банана и миндаля',
+                'price' => 8.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 11,
+                'name' => 'Чиа пуддинг',
+                'description' => 'Пуддинг из семян чиа с кокосовым молоком',
+                'price' => 10.00,
+                'is_available' => true,
+            ],
+
+            // Кафе "БыстроЕда" (ID 14) - фастфуд кафе
+            [
+                'restaurant_id' => 14,
+                'name' => 'Бургер с говядиной',
+                'description' => 'Классический бургер с говяжьей котлетой',
+                'price' => 12.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 14,
+                'name' => 'Картофель фри',
+                'description' => 'Жареный картофель с солью',
+                'price' => 6.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 14,
+                'name' => 'Куриные наггетсы',
+                'description' => 'Хрустящие куриные наггетсы с соусом',
+                'price' => 10.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 14,
+                'name' => 'Кока-кола',
+                'description' => 'Газированный напиток 0.33л',
+                'price' => 3.50,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 14,
+                'name' => 'Мороженое',
+                'description' => 'Ванильное мороженое в рожке',
+                'price' => 4.00,
+                'is_available' => true,
+            ],
+
+            // ===== РЕСТОРАНЫ (изысканная кухня, высокие цены) =====
+
+            // Ресторан "Старое Место" (ID 3) - традиционная белорусская кухня
+            [
+                'restaurant_id' => 3,
+                'name' => 'Борщ',
+                'description' => 'Красный борщ с пампушками, салом и сметаной',
+                'price' => 16.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 3,
+                'name' => 'Жаркое по-деревенски',
+                'description' => 'Мясное жаркое в горшочке с овощами',
+                'price' => 28.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 3,
+                'name' => 'Колдуны',
+                'description' => 'Белорусские пельмени с мясом, подаются со сметаной',
+                'price' => 19.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 3,
+                'name' => 'Сырники',
+                'description' => 'Творожные оладьи с малиновым вареньем',
+                'price' => 14.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 3,
+                'name' => 'Медовуха',
+                'description' => 'Традиционный белорусский медовый напиток',
+                'price' => 12.00,
+                'is_available' => true,
+            ],
+
+            // Ресторан "Минск" (ID 7) - современная европейская кухня
+            [
+                'restaurant_id' => 7,
+                'name' => 'Утка конфи',
+                'description' => 'Французское блюдо из утиной ножки с овощами',
+                'price' => 38.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 7,
+                'name' => 'Лосось на гриле',
+                'description' => 'Стейк из лосося с овощами и лимонным соусом',
+                'price' => 42.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 7,
+                'name' => 'Стейк из говядины',
+                'description' => 'Сочный стейк с овощами гриль и соусом',
+                'price' => 45.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 7,
+                'name' => 'Тартар из говядины',
+                'description' => 'Французский стейк тартар с яйцом',
+                'price' => 35.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 7,
+                'name' => 'Шоколадный мусс',
+                'description' => 'Шоколадный мусс с ягодами',
+                'price' => 16.00,
+                'is_available' => true,
+            ],
+
+            // Ресторан "Пивария" (ID 10) - немецкая пивная
+            [
+                'restaurant_id' => 10,
+                'name' => 'Свиные рёбрышки',
+                'description' => 'Медово-горчичные свиные рёбрышки с капустой',
+                'price' => 32.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 10,
+                'name' => 'Баварские колбаски',
+                'description' => 'Традиционные немецкие колбаски с квашеной капустой',
+                'price' => 24.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 10,
+                'name' => 'Свиная рулька',
+                'description' => 'Запечённая свиная рулька с квашеной капустой',
+                'price' => 35.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 10,
+                'name' => 'Пиво светлое',
+                'description' => 'Немецкое светлое пиво 0.5л',
+                'price' => 6.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 10,
+                'name' => 'Шварцвальдский торт',
+                'description' => 'Классический немецкий шоколадный торт с вишней',
+                'price' => 18.00,
+                'is_available' => true,
+            ],
+
+            // Ресторан "Итальянский" (ID 13) - аутентичная итальянская кухня
+            [
+                'restaurant_id' => 13,
+                'name' => 'Пицца Маргарита',
+                'description' => 'Классическая пицца с томатами, моцареллой и базиликом',
+                'price' => 22.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 13,
+                'name' => 'Паста Болоньезе',
+                'description' => 'Спагетти с мясным соусом болоньезе',
+                'price' => 25.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 13,
+                'name' => 'Оссобуко',
+                'description' => 'Тушёная говяжья голень по-милански',
+                'price' => 45.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 13,
+                'name' => 'Ризотто с морепродуктами',
+                'description' => 'Итальянское ризотто с морепродуктами',
+                'price' => 38.00,
+                'is_available' => true,
+            ],
+            [
+                'restaurant_id' => 13,
+                'name' => 'Тирамису',
+                'description' => 'Классический итальянский десерт',
+                'price' => 15.00,
+                'is_available' => true,
+            ],
+        ];
+
+        foreach ($dishes as $dishData) {
+            Dish::create($dishData);
+        }
+    }
+}
