@@ -18,14 +18,22 @@ class RegisterController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'country_code' => 'required|string|regex:/^\+\d{1,4}$/',
+            'country_code' => 'required|string|regex:/^\+[1-9]\d{0,3}(\s?\d{0,3})?$/',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/', // Минимум 1 прописная, 1 заглавная, 1 цифра
+            ],
+        ], [
+            'password.regex' => 'Пароль должен содержать минимум одну прописную букву, одну заглавную букву и одну цифру.',
         ]);
 
         // Проверяем уникальность полного номера телефона
-        $fullPhone = $request->country_code . $request->phone;
+        $fullPhone = $request->country_code.$request->phone;
         $existingUser = User::where('phone', $fullPhone)->first();
         if ($existingUser) {
             return back()->withErrors(['phone' => 'Пользователь с таким номером телефона уже зарегистрирован.'])->withInput();

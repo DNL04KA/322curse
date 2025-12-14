@@ -55,7 +55,7 @@ class CartController extends Controller
                 'success' => true,
                 'message' => 'Блюдо добавлено в корзину!',
                 'cart_count' => count($cart),
-                'dish_name' => $dish->name
+                'dish_name' => $dish->name,
             ]);
         }
 
@@ -79,7 +79,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Количество обновлено!',
-                'cart_count' => count($cart)
+                'cart_count' => count($cart),
             ]);
         }
 
@@ -99,7 +99,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Блюдо удалено из корзины!',
-                'cart_count' => count($cart)
+                'cart_count' => count($cart),
             ]);
         }
 
@@ -114,7 +114,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Корзина очищена!',
-                'cart_count' => 0
+                'cart_count' => 0,
             ]);
         }
 

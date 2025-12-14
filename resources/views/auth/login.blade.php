@@ -14,7 +14,7 @@
                     @csrf
 
                     <div class="mb-3">
-                        <label for="phone" class="form-label">Номер телефона</label>
+                        <label for="phone" class="form-label">Номер телефона <span class="text-danger">*</span></label>
                         <div class="row">
                             <div class="col-md-4 mb-2 mb-md-0">
                                 <select class="form-select" id="country_code_select" onchange="updateCountryCode()">
@@ -46,7 +46,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">Пароль</label>
+                        <label for="password" class="form-label">Пароль <span class="text-danger">*</span></label>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
                                id="password" name="password" required>
                         @error('password')

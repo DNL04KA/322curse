@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Создаем админа, если его нет
+        $this->call(AdminUserSeeder::class);
+
         // Создаем рестораны и столовые Минска (включая БГУИР)
         $restaurants = [
             [

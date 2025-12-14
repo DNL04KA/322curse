@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Dish;
-use App\Models\Restaurant;
+use Illuminate\Http\Request;
 
 class DishSearchController extends Controller
 {
@@ -16,7 +15,7 @@ class DishSearchController extends Controller
             return view('search.results', [
                 'query' => $query,
                 'restaurants' => collect(),
-                'totalResults' => 0
+                'totalResults' => 0,
             ]);
         }
 
@@ -24,26 +23,27 @@ class DishSearchController extends Controller
         $dishes = Dish::with('restaurant')
             ->where('is_available', true)
             ->where(function ($q) use ($query) {
-                $q->where('name', 'LIKE', '%' . $query . '%')
-                  ->orWhere('description', 'LIKE', '%' . $query . '%')
-                  ->orWhere('category', 'LIKE', '%' . $query . '%');
+                $q->where('name', 'LIKE', '%'.$query.'%')
+                    ->orWhere('description', 'LIKE', '%'.$query.'%')
+                    ->orWhere('category', 'LIKE', '%'.$query.'%');
             })
             ->get();
 
         // Группировка по ресторанам
         $restaurants = $dishes->groupBy('restaurant_id')->map(function ($dishes, $restaurantId) {
             $restaurant = $dishes->first()->restaurant;
+
             return [
                 'restaurant' => $restaurant,
                 'dishes' => $dishes,
-                'dish_count' => $dishes->count()
+                'dish_count' => $dishes->count(),
             ];
         });
 
         return view('search.results', [
             'query' => $query,
             'restaurants' => $restaurants,
-            'totalResults' => $dishes->count()
+            'totalResults' => $dishes->count(),
         ]);
     }
 
@@ -58,8 +58,8 @@ class DishSearchController extends Controller
         // Поиск популярных блюд для автодополнения
         $dishes = Dish::where('is_available', true)
             ->where(function ($q) use ($query) {
-                $q->where('name', 'LIKE', $query . '%')
-                  ->orWhere('category', 'LIKE', $query . '%');
+                $q->where('name', 'LIKE', $query.'%')
+                    ->orWhere('category', 'LIKE', $query.'%');
             })
             ->limit(10)
             ->get(['name', 'category'])
@@ -68,7 +68,7 @@ class DishSearchController extends Controller
                 return [
                     'name' => $dish->name,
                     'category' => $dish->category,
-                    'label' => $dish->name . ' (' . $dish->category . ')'
+                    'label' => $dish->name.' ('.$dish->category.')',
                 ];
             });
 

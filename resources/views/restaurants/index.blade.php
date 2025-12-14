@@ -26,7 +26,7 @@
                             </button>
                         </div>
                     </form>
-                    <div id="main-search-suggestions" class="bg-white border rounded shadow-sm d-none mt-1" style="z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
+                    <div id="main-search-suggestions" class="bg-white border rounded shadow-sm d-none mt-1 search-suggestions" style="z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
                 </div>
             </div>
 
@@ -67,7 +67,7 @@
 <div class="row">
     @forelse($restaurants as $restaurant)
         <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 shadow-sm">
+            <div class="card h-100 shadow-sm restaurant-card">
                 @if($restaurant->image)
                     <img src="{{ asset('storage/' . $restaurant->image) }}" class="card-img-top" alt="{{ $restaurant->name }}" style="height: 200px; object-fit: cover;">
                 @else

@@ -12,7 +12,11 @@ class RestaurantController extends Controller
      */
     public function index()
     {
-        $restaurants = Restaurant::where('is_active', true)->get();
+        // Eager loading для избежания N+1
+        $restaurants = Restaurant::with('dishes')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
         return view('restaurants.index', compact('restaurants'));
     }

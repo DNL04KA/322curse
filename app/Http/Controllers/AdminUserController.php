@@ -35,15 +35,15 @@ class AdminUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255|unique:users',
-            'phone' => 'required|string|max:20|unique:users',
-            'password' => 'required|string|min:8',
+            'full_phone' => 'required|string|max:50|unique:users,phone',
+            'password' => 'required|string|min:8|confirmed',
             'is_admin' => 'boolean',
         ]);
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
+            'phone' => $request->full_phone,
             'password' => Hash::make($request->password),
             'is_admin' => $request->boolean('is_admin'),
             'phone_verified_at' => now(),
@@ -76,18 +76,14 @@ class AdminUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => ['required', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
-            'is_admin' => 'boolean',
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
-            'is_admin' => $request->boolean('is_admin'),
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'Пользователь успешно обновлен');
+        return redirect()->route('admin.users.show', $user)->with('success', 'Пользователь успешно обновлен');
     }
 
     /**
@@ -115,16 +111,37 @@ class AdminUserController extends Controller
             return redirect()->route('admin.users.index')->with('error', 'Нельзя изменить статус администратора у самого себя');
         }
 
-        $user->update(['is_admin' => ! $user->is_admin]);
+        $wasAdmin = $user->is_admin;
 
-        $status = $user->is_admin ? 'назначен администратором' : 'снят с роли администратора';
+        // Обновляем статус
+        $newStatus = ! $user->is_admin;
+        $user->is_admin = $newStatus;
+        $user->save(); // Используем save() вместо update() для надежности
+
+        // Перезагружаем модель из БД для проверки
+        $user->refresh();
+
+        // Логируем для отладки
+        \Log::info('Toggle admin status', [
+            'user_id' => $user->id,
+            'was_admin' => $wasAdmin,
+            'new_status' => $newStatus,
+            'current_is_admin' => $user->is_admin,
+        ]);
+
+        $status = $wasAdmin ? 'снят с роли администратора' : 'назначен администратором';
 
         // Если это AJAX запрос, возвращаем JSON
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => "Пользователь {$status}",
-                'is_admin' => $user->is_admin
+                'is_admin' => $user->is_admin,
+                'debug' => [
+                    'was_admin' => $wasAdmin,
+                    'new_status' => $newStatus,
+                    'current_is_admin' => $user->is_admin,
+                ],
             ]);
         }
 

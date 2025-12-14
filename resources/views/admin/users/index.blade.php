@@ -105,8 +105,7 @@
                                                             <ul class="dropdown-menu">
                                                                 <li><h6 class="dropdown-header">Действия</h6></li>
                                                                 <li>
-                                                                    <form action="{{ route('admin.users.toggle-admin', $user) }}"
-                                                                          method="POST" class="toggle-admin-form d-inline">
+                                                                    <form action="{{ route('admin.users.toggle-admin', $user) }}" method="POST" class="toggle-admin-form d-inline">
                                                                         @csrf
                                                                         @method('PATCH')
                                                                         <button type="submit" class="dropdown-item">
@@ -209,17 +208,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
                     // Показываем уведомление
                     showNotification(data.message, 'success');
+                    // Показываем debug информацию
+                    if (data.debug) {
+                        console.log('Debug info:', data.debug);
+                    }
                     // Перезагружаем страницу через 1 секунду
                     setTimeout(() => {
                         location.reload();
                     }, 1000);
                 } else {
                     showNotification('Ошибка при изменении статуса', 'danger');
+                    console.error('Server returned error:', data);
                 }
             })
             .catch(error => {

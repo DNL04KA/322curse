@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Services\TelegramService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class TelegramBotPolling extends Command
 {
@@ -38,8 +37,9 @@ class TelegramBotPolling extends Command
     {
         $botToken = $this->telegramService->getBotToken();
 
-        if (!$botToken) {
+        if (! $botToken) {
             $this->error('❌ Токен бота не настроен! Добавьте TELEGRAM_BOT_TOKEN в .env файл');
+
             return 1;
         }
 
@@ -69,7 +69,7 @@ class TelegramBotPolling extends Command
                         }
                     }
                 } else {
-                    $this->error('❌ Ошибка получения обновлений: ' . $response->status());
+                    $this->error('❌ Ошибка получения обновлений: '.$response->status());
                     sleep(5);
                 }
 
@@ -77,7 +77,7 @@ class TelegramBotPolling extends Command
                 sleep(1);
 
             } catch (\Exception $e) {
-                $this->error('❌ Ошибка: ' . $e->getMessage());
+                $this->error('❌ Ошибка: '.$e->getMessage());
                 sleep(5);
             }
         }
@@ -96,7 +96,7 @@ class TelegramBotPolling extends Command
             $this->info("📨 Новое сообщение от @{$username}: {$text}");
 
             // Создаем HTTP запрос для обработки через существующий контроллер
-            $httpRequest = new \Illuminate\Http\Request();
+            $httpRequest = new \Illuminate\Http\Request;
             $httpRequest->merge(['message' => $update['message']]);
 
             try {
@@ -105,7 +105,7 @@ class TelegramBotPolling extends Command
 
                 $this->info('✅ Сообщение обработано');
             } catch (\Exception $e) {
-                $this->error('❌ Ошибка обработки: ' . $e->getMessage());
+                $this->error('❌ Ошибка обработки: '.$e->getMessage());
             }
         } elseif (isset($update['callback_query'])) {
             $callbackUsername = isset($update['callback_query']['from']['username']) ? $update['callback_query']['from']['username'] : 'user';
@@ -113,7 +113,7 @@ class TelegramBotPolling extends Command
             $this->info("🔘 Callback от @{$callbackUsername}: {$callbackData}");
 
             // Обрабатываем callback
-            $httpRequest = new \Illuminate\Http\Request();
+            $httpRequest = new \Illuminate\Http\Request;
             $httpRequest->merge(['callback_query' => $update['callback_query']]);
 
             try {
@@ -122,7 +122,7 @@ class TelegramBotPolling extends Command
 
                 $this->info('✅ Callback обработан');
             } catch (\Exception $e) {
-                $this->error('❌ Ошибка обработки callback: ' . $e->getMessage());
+                $this->error('❌ Ошибка обработки callback: '.$e->getMessage());
             }
         }
     }

@@ -1,0 +1,34 @@
+@startuml Диаграмма_2.3_Компоненты_МИНИМАЛ
+
+skinparam componentStyle rectangle
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam backgroundColor White
+
+' Клиент
+rectangle "Клиентская часть" {
+    component [Веб-браузер\n(HTML, CSS, JavaScript)] as Client
+}
+
+' Сервер
+rectangle "Серверная часть" {
+    component [Laravel Artisan\nWeb Server] as Server
+    component [Router] as Router
+    component [Controllers] as Controllers
+    component [Models\n(Eloquent ORM)] as Models
+    component [Views\n(Blade)] as Views
+}
+
+' База данных
+database "MySQL" as DB
+
+' Связи (вертикально сверху вниз)
+Client --> Server : HTTP запросы
+Server --> Router : Обработка
+Router --> Controllers : Маршрутизация
+Controllers --> Models : Получение данных
+Controllers --> Views : Передача данных
+Models --> DB : SQL запросы
+
+@enduml
+

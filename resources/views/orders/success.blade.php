@@ -6,9 +6,7 @@
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         <div class="text-center py-5">
-            <div class="mb-4">
-                <i class="fas fa-check-circle fa-5x text-success"></i>
-            </div>
+            <div class="success-checkmark mb-4"></div>
             <h1 class="mb-3 text-success">Заказ оформлен!</h1>
             <p class="lead mb-4">
                 Спасибо за заказ! Мы свяжемся с вами в ближайшее время.

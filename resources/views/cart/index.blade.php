@@ -79,7 +79,7 @@
                                 @endif
                             </div>
                             <div class="col-md-2">
-                                <strong class="text-primary">{{ number_format($item['dish']->price * $item['quantity'], 2, ',', ' ') }} BYN</strong>
+                                <strong class="text-primary price-update">{{ number_format($item['dish']->price * $item['quantity'], 2, ',', ' ') }} BYN</strong>
                             </div>
                             <div class="col-md-1">
                                 <form action="{{ route('cart.remove', $item['dish']->id) }}" method="POST" class="remove-cart-form">
@@ -123,7 +123,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span>Общая сумма:</span>
-                        <strong class="text-primary h5">
+                        <strong class="text-primary h5 price-update" id="cart-total">
                             {{ number_format(collect($cartItems)->sum(function($item) {
                                 return $item['dish']->price * $item['quantity'];
                             }), 2, ',', ' ') }} BYN

@@ -224,13 +224,19 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Анимация летящей карточки
+                    animateToCart(button.closest('.card'));
+
+                    // Анимация счетчика корзины
+                    animateCartCounter();
+
                     // Показываем уведомление
-                    showNotification(data.message, 'success');
+                    showToast(data.message, 'success');
 
                     // Обновляем счетчик корзины
                     updateCartCounter(data.cart_count);
                 } else {
-                    showNotification('Ошибка при добавлении в корзину', 'danger');
+                    showToast('Ошибка при добавлении в корзину', 'danger');
                 }
             })
             .catch(error => {
@@ -245,23 +251,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-        notification.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 3000);
-    }
 
     function updateCartCounter(count) {
         const cartBadge = document.querySelector('.navbar-nav a[href*="cart"] .badge');

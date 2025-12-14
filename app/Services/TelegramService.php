@@ -59,7 +59,7 @@ class TelegramService
      */
     public function sendOrderStatusUpdate(array $orderData): bool
     {
-        $statusEmoji = match($orderData['status']) {
+        $statusEmoji = match ($orderData['status']) {
             'new' => '🆕',
             'preparing' => '👨‍🍳',
             'ready' => '✅',
@@ -81,7 +81,7 @@ class TelegramService
     /**
      * Отправить сообщение в конкретный чат
      */
-    public function sendMessageToChat(string $chatId, string $message, array $keyboard = null): bool
+    public function sendMessageToChat(string $chatId, string $message, ?array $keyboard = null): bool
     {
         if (! $this->botToken) {
             Log::warning('Telegram bot token not configured');
@@ -137,15 +137,16 @@ class TelegramService
     public function sendMessageToAdmin(string $message): bool
     {
         $chatIds = $this->getAdminChatIds();
-        
+
         if (empty($chatIds)) {
             Log::warning('Admin chat IDs not configured');
+
             return false;
         }
 
         $success = true;
         foreach ($chatIds as $chatId) {
-            if (!$this->sendMessageToChat($chatId, $message)) {
+            if (! $this->sendMessageToChat($chatId, $message)) {
                 $success = false;
             }
         }

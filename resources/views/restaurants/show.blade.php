@@ -50,7 +50,7 @@
             </div>
             @foreach($dishes as $dish)
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm dish-card">
                         @if($dish->image)
                             <img src="{{ asset('storage/' . $dish->image) }}" class="card-img-top" alt="{{ $dish->name }}" style="height: 200px; object-fit: cover;">
                         @else
@@ -130,18 +130,24 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Анимация летящей карточки
+                    animateToCart(button.closest('.card'));
+
+                    // Анимация счетчика корзины
+                    animateCartCounter();
+
                     // Показываем уведомление об успехе
-                    showNotification(data.message, 'success');
+                    showToast(data.message, 'success');
 
                     // Обновляем счетчик корзины в навигации
                     updateCartCounter(data.cart_count);
                 } else {
-                    showNotification('Ошибка при добавлении в корзину', 'danger');
+                    showToast('Ошибка при добавлении в корзину', 'danger');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('Произошла ошибка', 'danger');
+                showToast('Произошла ошибка', 'danger');
             })
             .finally(() => {
                 // Восстанавливаем кнопку
@@ -151,25 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    function showNotification(message, type) {
-        // Создаем уведомление
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-        notification.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-
-        document.body.appendChild(notification);
-
-        // Автоматически удаляем через 3 секунды
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 3000);
-    }
 
     function updateCartCounter(count) {
         const cartBadge = document.querySelector('.navbar-nav a[href*="cart"] .badge');

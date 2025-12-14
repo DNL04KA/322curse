@@ -1,0 +1,129 @@
+@startuml Диаграмма_2.1_Физическая_схема_БД
+
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+!define foreign_key(x) <color:#aaaaaa><&key></color> x
+!define column(x) <color:#efefef><&media-record></color> x
+!define index(x) <color:#00ffff><&grid-three-up></color> x
+
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor Black
+}
+
+entity "users" as users {
+  primary_key(id) : BIGINT UNSIGNED
+  --
+  column(name) : VARCHAR(255)
+  index(email) : VARCHAR(255) UNIQUE NULLABLE
+  index(phone) : VARCHAR(20) UNIQUE
+  column(password) : VARCHAR(255)
+  index(is_admin) : BOOLEAN DEFAULT 0
+  column(email_verified_at) : TIMESTAMP NULL
+  column(remember_token) : VARCHAR(100) NULL
+  column(created_at) : TIMESTAMP
+  column(updated_at) : TIMESTAMP
+}
+
+entity "restaurants" as restaurants {
+  primary_key(id) : BIGINT UNSIGNED
+  --
+  column(name) : VARCHAR(255)
+  column(description) : TEXT NULLABLE
+  column(address) : VARCHAR(255)
+  column(phone) : VARCHAR(20) NULLABLE
+  column(image) : VARCHAR(255) NULLABLE
+  column(is_active) : BOOLEAN DEFAULT 1
+  column(created_at) : TIMESTAMP
+  column(updated_at) : TIMESTAMP
+}
+
+entity "dishes" as dishes {
+  primary_key(id) : BIGINT UNSIGNED
+  --
+  column(name) : VARCHAR(255)
+  column(description) : TEXT NULLABLE
+  column(price) : DECIMAL(8,2)
+  column(image) : VARCHAR(255) NULLABLE
+  index(category) : VARCHAR(100) NULLABLE
+  index(is_available) : BOOLEAN DEFAULT 1
+  column(calories) : INT NULLABLE
+  column(protein) : DECIMAL(5,2) NULLABLE
+  column(fat) : DECIMAL(5,2) NULLABLE
+  column(carbs) : DECIMAL(5,2) NULLABLE
+  foreign_key(restaurant_id) : BIGINT UNSIGNED
+  column(created_at) : TIMESTAMP
+  column(updated_at) : TIMESTAMP
+}
+
+entity "orders" as orders {
+  primary_key(id) : BIGINT UNSIGNED
+  --
+  foreign_key(user_id) : BIGINT UNSIGNED NULLABLE
+  column(customer_name) : VARCHAR(255)
+  column(customer_email) : VARCHAR(255) NULLABLE
+  column(customer_phone) : VARCHAR(20)
+  column(delivery_address) : TEXT
+  column(total_amount) : DECIMAL(10,2)
+  index(status) : ENUM(...)
+  column(delivery_time) : TIMESTAMP NULLABLE
+  column(notes) : TEXT NULLABLE
+  index(created_at) : TIMESTAMP
+  column(updated_at) : TIMESTAMP
+}
+
+entity "order_items" as order_items {
+  primary_key(id) : BIGINT UNSIGNED
+  --
+  foreign_key(order_id) : BIGINT UNSIGNED
+  foreign_key(dish_id) : BIGINT UNSIGNED
+  column(quantity) : INT
+  column(price) : DECIMAL(8,2)
+  column(special_instructions) : TEXT NULL
+  column(created_at) : TIMESTAMP
+  column(updated_at) : TIMESTAMP
+}
+
+' Связи
+restaurants ||--o{ dishes : "has many"
+dishes ||--o{ order_items : "has many"
+orders ||--o{ order_items : "has many"
+users ||--o{ orders : "has many"
+
+note right of users
+  <b>Пользователи системы</b>
+  Хранит данные о клиентах
+  и администраторах.
+  is_admin определяет роль.
+end note
+
+note right of restaurants
+  <b>Рестораны</b>
+  Каталог заведений
+  общественного питания.
+end note
+
+note right of dishes
+  <b>Блюда</b>
+  Меню ресторанов с ценами,
+  категориями и пищевой ценностью.
+end note
+
+note right of orders
+  <b>Заказы</b>
+  Информация о заказах клиентов.
+  6 статусов: pending, confirmed,
+  preparing, delivering,
+  delivered, cancelled.
+end note
+
+note right of order_items
+  <b>Позиции заказов</b>
+  Связь M:N между заказами
+  и блюдами. Цена фиксируется
+  на момент заказа.
+end note
+
+@enduml
+

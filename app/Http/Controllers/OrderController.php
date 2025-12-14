@@ -64,7 +64,7 @@ class OrderController extends Controller
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'nullable|email|max:255',
-            'country_code' => 'required|string|regex:/^(\+)?\d{1,4}$/',
+            'country_code' => 'required|string|regex:/^\+[1-9]\d{0,3}(\s?\d{0,3})?$/',
             'phone' => 'required|string|max:20',
             'city' => 'required|string|max:100',
             'street' => 'required|string|max:255',
@@ -93,13 +93,44 @@ class OrderController extends Controller
             return redirect()->route('cart.index')->with('error', 'Корзина пуста!');
         }
 
-        // Рассчитываем общую сумму
+        // Рассчитываем общую сумму и проверяем доступность блюд
         $total = 0;
+        $unavailableDishes = [];
+
         foreach ($cart as $dishId => $item) {
-            $dish = Dish::find($dishId);
-            if ($dish) {
-                $total += $dish->price * $item['quantity'];
+            $dish = Dish::with('restaurant')->find($dishId);
+
+            if (! $dish) {
+                // Удаляем несуществующее блюдо из корзины
+                unset($cart[$dishId]);
+
+                continue;
             }
+
+            // Проверяем доступность блюда и ресторана
+            if (! $dish->is_available || ! $dish->restaurant->is_active) {
+                $unavailableDishes[] = $dish->name;
+                unset($cart[$dishId]);
+
+                continue;
+            }
+
+            $total += $dish->price * $item['quantity'];
+        }
+
+        // Обновляем корзину после проверок
+        session()->put('cart', $cart);
+
+        // Если есть недоступные блюда, уведомляем пользователя
+        if (! empty($unavailableDishes)) {
+            return back()->withErrors([
+                'dishes' => 'Следующие блюда больше не доступны и были удалены из корзины: '.implode(', ', $unavailableDishes),
+            ])->withInput();
+        }
+
+        // Если корзина пуста после проверок
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Корзина пуста или все блюда недоступны!');
         }
 
         // Форматируем номер телефона
@@ -182,6 +213,11 @@ class OrderController extends Controller
     {
         $order = Order::with('orderItems.dish')->findOrFail($id);
 
+        // Проверка прав доступа: только владелец заказа или админ
+        if ($order->user_id !== auth()->id() && ! auth()->user()->is_admin) {
+            abort(403, 'У вас нет доступа к этому заказу');
+        }
+
         return view('orders.show', compact('order'));
     }
 
@@ -195,7 +231,8 @@ class OrderController extends Controller
      */
     public function adminIndex()
     {
-        $orders = Order::with('orderItems.dish.restaurant')
+        // Eager loading для избежания N+1
+        $orders = Order::with(['user', 'orderItems.dish.restaurant'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 

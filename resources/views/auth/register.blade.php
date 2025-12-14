@@ -14,7 +14,7 @@
                     @csrf
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">Имя и фамилия</label>
+                        <label for="name" class="form-label">Имя и фамилия <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror"
                                id="name" name="name" value="{{ old('name') }}" required autofocus>
                         @error('name')
@@ -23,16 +23,16 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="phone" class="form-label">Номер телефона <span class="text-danger">*</span></label>
+                    <label for="phone" class="form-label">Номер телефона <span class="text-danger">*</span></label>
                         <div class="row">
                             <div class="col-md-4 mb-2 mb-md-0">
-                                <select class="form-select" id="country_code_select" onchange="updateCountryCode()">
+                                <select class="form-select" id="country_code_select" onchange="updateCountryCode()" style="max-width: 100px;">
                                     <option value="+375" selected>🇧🇾 +375</option>
                                     <option value="+7">🇷🇺 +7</option>
                                     <option value="+48">🇵🇱 +48</option>
                                     <option value="+49">🇩🇪 +49</option>
                                     <option value="+1">🇺🇸 +1</option>
-                                    <option value="custom">🔧 Другое...</option>
+                                    <option value="custom">🔧 ...</option>
                                 </select>
                             </div>
                             <div class="col-md-8">
@@ -41,7 +41,7 @@
                                            id="country_code_input" name="country_code" value="{{ old('country_code', '+375') }}"
                                            placeholder="+375" style="max-width: 80px;" readonly>
                                     <input type="tel" class="form-control @error('phone') is-invalid @enderror"
-                                           id="phone" name="phone" value="{{ old('phone') }}" placeholder="(29) 123-45-67" required maxlength="20" data-digits="">
+                                           id="phone" name="phone" value="{{ old('phone') }}" placeholder="(29) 123-45-67" required maxlength="25">
                                 </div>
                             </div>
                         </div>
@@ -64,7 +64,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">Пароль</label>
+                        <label for="password" class="form-label">Пароль <span class="text-danger">*</span></label>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
                                id="password" name="password" required>
                         @error('password')
@@ -74,7 +74,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password_confirmation" class="form-label">Подтверждение пароля</label>
+                        <label for="password_confirmation" class="form-label">Подтверждение пароля <span class="text-danger">*</span></label>
                         <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
                                id="password_confirmation" name="password_confirmation" required>
                         @error('password_confirmation')
@@ -138,17 +138,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePhonePlaceholder() {
         const countryCode = countryCodeInput.value;
 
-        if (countryCode === '+375') {
-            phoneInput.placeholder = "(29) 123-45-67";
-        } else if (countryCode === '+7') {
-            phoneInput.placeholder = "(999) 123-45-67";
-        } else if (countryCode === '+380') {
-            phoneInput.placeholder = "(50) 123-45-67";
-        } else if (countryCode === '+48') {
-            phoneInput.placeholder = "(500) 123-456";
-        } else {
-            phoneInput.placeholder = "Введите номер телефона";
-        }
+        // Распространенные форматы номеров по странам
+        const placeholders = {
+            '+375': '(29) 123-45-67',    // Беларусь - 9 цифр
+            '+7': '9001234567 (10 цифр)',   // Россия - 10 цифр
+            '+48': '500123456 (9 цифр)',    // Польша - 9 цифр
+            '+49': '1701234567 (12 цифр)',  // Германия - 12 цифр
+            '+1': '5551234567 (10 цифр)'    // США - 10 цифр
+        };
+
+        phoneInput.placeholder = placeholders[countryCode] || "Введите номер телефона";
     }
 
     // Обработка ввода кода страны
@@ -160,162 +159,68 @@ document.addEventListener('DOMContentLoaded', function() {
             value = '+' + value.replace(/^\+/, '');
         }
 
-        // Удаляем все нецифровые символы кроме +
-        value = value.replace(/[^\d+]/g, '');
+        // Удаляем все нецифровые символы кроме + и пробелов
+        value = value.replace(/[^\d+\s]/g, '');
 
-        // Ограничиваем длину
-        if (value.length > 5) {
-            value = value.slice(0, 5);
+        // Ограничиваем длину до разумных пределов
+        if (value.length > 8) {
+            value = value.slice(0, 8);
         }
 
         this.value = value;
-
-        // Обновляем плейсхолдер
         updatePhonePlaceholder();
     });
 
+    // Обработка ввода номера телефона
     phoneInput.addEventListener('input', function(e) {
         // Не обрабатываем, если это программное изменение
         if (this.dataset.formatting) return;
 
         const countryCode = countryCodeInput.value;
 
-        // Извлекаем все цифры из input
+        // Очищаем от нецифровых символов и ограничиваем длину в зависимости от страны
         let digits = this.value.replace(/\D/g, '');
 
-        // Ограничиваем количество цифр в зависимости от страны
-        let maxDigits = 9;
-        if (countryCode === '+7') {
-            maxDigits = 10;
-        } else if (countryCode === '+380') {
-            maxDigits = 9;
-        } else if (countryCode === '+48') {
-            maxDigits = 9;
-        }
+        // Максимальное количество цифр в зависимости от страны
+        const maxDigitsByCountry = {
+            '+375': 9,   // Беларусь: (XX) XXX-XX-XX
+            '+7': 10,    // Россия
+            '+48': 9,    // Польша
+            '+49': 12,   // Германия
+            '+1': 10     // США
+        };
 
+        const maxDigits = maxDigitsByCountry[countryCode] || 15;
         digits = digits.slice(0, maxDigits);
 
-        // Форматируем в зависимости от страны и количества цифр
-        let formatted = '';
+        let formatted = digits;
 
-        if (countryCode === '+375') {
-            // Беларусь: (XX) XXX-XX-XX
-            if (digits.length === 0) {
-                formatted = '';
-            } else if (digits.length <= 2) {
-                formatted = digits;
-            } else {
+        // ТОЛЬКО для Беларуси (+375) специальный формат при полном номере
+        if (countryCode === '+375' && digits.length >= 2) {
+            if (digits.length === 9) {
+                // Полный формат: (XX) XXX-XX-XX
+                formatted = '(' + digits.slice(0, 2) + ') ' +
+                           digits.slice(2, 5) + '-' +
+                           digits.slice(5, 7) + '-' +
+                           digits.slice(7, 9);
+            } else if (digits.length >= 2) {
+                // Частичный формат: (XX) XXX...
                 formatted = '(' + digits.slice(0, 2) + ')';
-
-                if (digits.length >= 3) {
-                    // Беларусь: (XX) XXX-XX-XX
-                    let remaining = digits.slice(2); // Все цифры после кода оператора
-                    let formattedRemaining = '';
-
-                    // Всегда берем первые 3 цифры для XXX
-                    if (remaining.length >= 1) {
-                        formattedRemaining = remaining.slice(0, Math.min(3, remaining.length));
-                        remaining = remaining.slice(formattedRemaining.length);
-                    }
-
-                    // Добавляем дефис и следующие 2 цифры, если есть
-                    if (remaining.length >= 1) {
-                        formattedRemaining += '-' + remaining.slice(0, Math.min(2, remaining.length));
-                        remaining = remaining.slice(Math.min(2, remaining.length));
-                    }
-
-                    // Добавляем еще дефис и 2 цифры, если есть
-                    if (remaining.length >= 1) {
-                        formattedRemaining += '-' + remaining.slice(0, Math.min(2, remaining.length));
-                    }
-
-                    formatted += ' ' + formattedRemaining;
-                }
-            }
-        } else if (countryCode === '+7') {
-            // Россия: (XXX) XXX-XX-XX
-            if (digits.length >= 3) {
-                formatted = '(' + digits.slice(0, 3) + ')';
-                if (digits.length > 3) {
-                    formatted += ' ' + digits.slice(3, 3);
-                    if (digits.length >= 7) {
-                        formatted += '-' + digits.slice(6, 2);
-                        if (digits.length >= 9) {
-                            formatted += '-' + digits.slice(8, 2);
-                        }
-                    }
-                }
-            } else {
-                formatted = digits;
-            }
-        } else if (countryCode === '+380') {
-            // Украина: (XX) XXX-XX-XX
-            if (digits.length >= 2) {
-                formatted = '(' + digits.slice(0, 2) + ')';
-                if (digits.length >= 5) {
-                    formatted += ' ' + digits.slice(2, 3) + digits.slice(3, 2);
-                    if (digits.length >= 7) {
-                        formatted += '-' + digits.slice(5, 2);
-                        if (digits.length >= 9) {
-                            formatted += '-' + digits.slice(7, 2);
-                        }
-                    }
-                } else if (digits.length > 2) {
+                if (digits.length > 2) {
                     formatted += ' ' + digits.slice(2);
                 }
-            } else {
-                formatted = digits;
             }
-        } else if (countryCode === '+48') {
-            // Польша: (XXX) XXX-XXX
-            if (digits.length >= 3) {
-                formatted = '(' + digits.slice(0, 3) + ')';
-                if (digits.length > 3) {
-                    formatted += ' ' + digits.slice(3, 3);
-                    if (digits.length >= 7) {
-                        formatted += '-' + digits.slice(6, 3);
-                    }
-                }
-            } else {
-                formatted = digits;
-            }
-        } else {
-            // Для других стран - простой формат
-            formatted = digits.replace(/(\d{3})(?=\d)/g, '$1-');
         }
+        // Для ВСЕХ остальных стран - просто цифры без форматирования
 
         // Устанавливаем флаг, чтобы избежать рекурсии
         this.dataset.formatting = 'true';
-        this.value = formatted;
+        this.value = formatted.trim();
         delete this.dataset.formatting;
     });
 
     // Инициализация
     updateCountryCode();
-
-    // Функция для обновления отображения выбранной опции
-    function updateSelectDisplay() {
-        const select = countryCodeSelect;
-        const selectedOption = select.options[select.selectedIndex];
-        const displayText = selectedOption.getAttribute('data-display') || selectedOption.text;
-
-        // Создаем временный span для измерения ширины
-        const tempSpan = document.createElement('span');
-        tempSpan.style.visibility = 'hidden';
-        tempSpan.style.position = 'absolute';
-        tempSpan.style.fontSize = select.style.fontSize || '1rem';
-        tempSpan.textContent = displayText;
-        document.body.appendChild(tempSpan);
-
-        // Устанавливаем ширину select в зависимости от контента
-        const textWidth = tempSpan.offsetWidth;
-        select.style.width = Math.max(textWidth + 40, 60) + 'px'; // минимум 60px
-
-        document.body.removeChild(tempSpan);
-
-        // Обновляем отображение
-        select.setAttribute('data-selected', displayText);
-    }
 
     // Функция для адаптивной ширины select
     function adjustSelectWidth() {
@@ -324,9 +229,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const isCustom = selectedOption.value === 'custom';
 
         if (isCustom) {
-            select.style.width = '120px';
+            select.style.width = '100px';
         } else {
-            select.style.width = '80px';
+            select.style.width = '100px'; // Фиксированная ширина для кодов стран
         }
     }
 
@@ -341,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // При потере фокуса возвращаем адаптивную ширину
     countryCodeSelect.addEventListener('blur', function() {
-        setTimeout(adjustSelectWidth, 100); // Небольшая задержка для обработки клика
+        setTimeout(adjustSelectWidth, 100);
     });
 });
 </script>

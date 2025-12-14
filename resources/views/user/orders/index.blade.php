@@ -50,7 +50,7 @@
                                                 <strong class="text-primary">{{ number_format($order->total_amount, 2, ',', ' ') }} BYN</strong>
                                             </td>
                                             <td>
-                                                <span class="badge status-badge status-{{ $order->status }}">
+                                                <span class="badge status-badge status-{{ $order->status }} status-updated">
                                                     @php
                                                         $statusLabels = [
                                                             'pending' => 'Ожидает подтверждения',

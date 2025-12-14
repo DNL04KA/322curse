@@ -1,0 +1,43 @@
+@startuml Диаграмма_2.4_Последовательность_МИНИМАЛ
+
+skinparam defaultFontSize 11
+skinparam shadowing false
+
+actor Администратор
+participant Браузер
+participant Laravel
+participant Controller
+participant Model
+database MySQL
+
+Администратор -> Браузер : Открывает управление заказами
+Браузер -> Laravel : GET /admin/orders
+Laravel -> Controller : index()
+Controller -> Model : Получить все заказы
+Model -> MySQL : SELECT * FROM orders
+MySQL --> Model : Список заказов
+Model --> Controller : Данные заказов
+Controller --> Laravel : HTML с заказами
+Laravel --> Браузер : Страница со списком
+Браузер --> Администратор : Отображение заказов
+
+|||
+
+Администратор -> Браузер : Изменяет статус заказа
+Браузер -> Laravel : POST /admin/orders/5/status
+Laravel -> Controller : updateStatus()
+Controller -> Controller : Валидация
+Controller -> Model : Найти заказ (id=5)
+Model -> MySQL : SELECT WHERE id=5
+MySQL --> Model : Данные заказа
+Model --> Controller : Объект заказа
+Controller -> Model : Обновить статус
+Model -> MySQL : UPDATE status
+MySQL --> Model : Успех
+Model --> Controller : OK
+Controller --> Laravel : Редирект с сообщением
+Laravel --> Браузер : Успешно
+Браузер --> Администратор : "Статус изменен"
+
+@enduml
+

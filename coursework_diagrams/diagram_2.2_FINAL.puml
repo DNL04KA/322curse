@@ -1,0 +1,126 @@
+@startuml Диаграмма_2.2_Use_Case_FINAL
+
+' Идеальные настройки для чистой диаграммы
+skinparam usecaseBackgroundColor White
+skinparam usecaseBorderColor Black
+skinparam actorBackgroundColor White
+skinparam actorBorderColor Black
+skinparam packageBorderColor Black
+skinparam arrowColor Black
+skinparam defaultFontSize 9
+skinparam shadowing false
+skinparam linetype ortho
+
+left to right direction
+
+' Актеры
+actor Пользователь as User
+actor Администратор as Admin
+
+rectangle "Веб-приложение сервиса доставки еды" {
+
+  ' Колонка 1: Базовые функции
+  together {
+    usecase "Регистрация" as UC1
+    usecase "Вход в\nаккаунт" as UC2
+    usecase "Просмотреть\nрестораны" as UC3
+  }
+  
+  ' Колонка 2: Меню и поиск
+  together {
+    usecase "Просмотреть\nменю" as UC4
+    usecase "Просмотреть\nблюдо" as UC5
+    usecase "Добавить\nв корзину" as UC6
+  }
+  
+  ' Колонка 3: Корзина и заказ
+  together {
+    usecase "Просмотреть\nкорзину" as UC7
+    usecase "Оформить\nзаказ" as UC8
+    usecase "Отследить\nстатус" as UC9
+    usecase "Просмотреть\nисторию" as UC10
+  }
+  
+  ' Колонка 3A: Профиль пользователя
+  together {
+    usecase "Просмотреть\nпрофиль" as UC11
+    usecase "Редактировать\nпрофиль" as UC12
+    usecase "Изменить\nпароль" as UC13
+  }
+  
+  ' Колонка 4: Include (обязательные)
+  together {
+    usecase "Проверить\nучетные\nданные" as INC1 <<include>>
+    usecase "Указать\nадрес\nдоставки" as INC2 <<include>>
+    usecase "Рассчитать\nитоговую\nсумму" as INC3 <<include>>
+    usecase "Проверить\nтекущий\nпароль" as INC4 <<include>>
+    usecase "Загрузить\nстатистику" as INC5 <<include>>
+  }
+  
+  ' Колонка 5: Extend (опциональные)
+  together {
+    usecase "Искать\nблюда" as EXT1 <<extend>>
+    usecase "Фильтровать\nпо категориям" as EXT2 <<extend>>
+    usecase "Изменить\nколичество" as EXT3 <<extend>>
+    usecase "Удалить\nиз корзины" as EXT4 <<extend>>
+  }
+  
+  ' Колонка 6: Админ функции
+  together {
+    usecase "Управлять\nзаказами" as ADM1
+    usecase "Управлять\nпользователями" as ADM2
+  }
+  
+  ' Колонка 7: Админ include/extend
+  together {
+    usecase "Изменить\nстатус\nзаказа" as ADM_INC <<include>>
+    usecase "Отправить\nв Telegram" as ADM_EXT1 <<extend>>
+    usecase "Назначить\nадмина" as ADM_EXT2 <<extend>>
+    usecase "Заблокировать" as ADM_EXT3 <<extend>>
+  }
+
+}
+
+' Связи пользователя
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+User --> UC13
+
+' Связи администратора
+Admin --> ADM1
+Admin --> ADM2
+
+' Наследование
+Admin -up-|> User
+
+' Include связи
+UC2 ..> INC1 : <<include>>
+UC8 ..> INC2 : <<include>>
+UC8 ..> INC3 : <<include>>
+UC11 ..> INC5 : <<include>>
+UC13 ..> INC4 : <<include>>
+ADM1 ..> ADM_INC : <<include>>
+
+' Extend связи
+UC4 <.. EXT1 : <<extend>>
+UC4 <.. EXT2 : <<extend>>
+UC7 <.. EXT3 : <<extend>>
+UC7 <.. EXT4 : <<extend>>
+UC11 <.. UC12 : <<extend>>
+UC11 <.. UC13 : <<extend>>
+ADM_INC <.. ADM_EXT1 : <<extend>>
+ADM2 <.. ADM_EXT2 : <<extend>>
+ADM2 <.. ADM_EXT3 : <<extend>>
+
+@enduml
+
