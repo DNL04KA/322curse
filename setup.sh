@@ -1,269 +1,525 @@
 #!/bin/bash
 
-# 🍽️ FoodOrder - Автоматическая установка
-# Этот скрипт настроит весь проект автоматически
+# =============================================================================
+# 🚀 АВТОМАТИЧЕСКАЯ УСТАНОВКА ПРОЕКТА FOOD ORDER
+# =============================================================================
+# Этот скрипт полностью настроит проект на вашем компьютере
+# Поддержка: macOS с Homebrew или Laravel Herd
+# =============================================================================
 
-echo "╔════════════════════════════════════════╗"
-echo "║   🍽️  FoodOrder - Автоустановка   🍽️   ║"
-echo "╔════════════════════════════════════════╗"
-echo ""
+set -e  # Остановка при любой ошибке
 
 # Цвета для вывода
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Функция для вывода ошибок
-error() {
-    echo -e "${RED}❌ ОШИБКА: $1${NC}"
+# Функция для красивого вывода
+print_step() {
+    echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}▶ $1${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+}
+
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}✗ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠ $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ $1${NC}"
+}
+
+# Проверка, что скрипт запущен не из-под root
+if [ "$EUID" -eq 0 ]; then 
+    print_error "Не запускайте этот скрипт под root (sudo)!"
+    print_info "Запустите просто: ./setup.sh"
     exit 1
-}
-
-# Функция для вывода успеха
-success() {
-    echo -e "${GREEN}✅ $1${NC}"
-}
-
-# Функция для вывода предупреждений
-warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
-}
-
-# Функция для вывода информации
-info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
-}
-
-echo ""
-echo "🔍 Проверяю установленные программы..."
-echo ""
-
-# Проверка PHP
-if ! command -v php &> /dev/null; then
-    error "PHP не установлен! Установите PHP: brew install php"
 fi
-PHP_VERSION=$(php -v | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
-success "PHP $PHP_VERSION установлен"
 
-# Проверка Composer
-if ! command -v composer &> /dev/null; then
-    error "Composer не установлен! Установите Composer: brew install composer"
+# Заголовок
+clear
+echo -e "${CYAN}"
+cat << "EOF"
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║   ███████╗ ██████╗  ██████╗ ██████╗                          ║
+║   ██╔════╝██╔═══██╗██╔═══██╗██╔══██╗                         ║
+║   █████╗  ██║   ██║██║   ██║██║  ██║                         ║
+║   ██╔══╝  ██║   ██║██║   ██║██║  ██║                         ║
+║   ██║     ╚██████╔╝╚██████╔╝██████╔╝                         ║
+║   ╚═╝      ╚═════╝  ╚═════╝ ╚═════╝                          ║
+║                                                               ║
+║    ██████╗ ██████╗ ██████╗ ███████╗██████╗                   ║
+║   ██╔═══██╗██╔══██╗██╔══██╗██╔════╝██╔══██╗                  ║
+║   ██║   ██║██████╔╝██║  ██║█████╗  ██████╔╝                  ║
+║   ██║   ██║██╔══██╗██║  ██║██╔══╝  ██╔══██╗                  ║
+║   ╚██████╔╝██║  ██║██████╔╝███████╗██║  ██║                  ║
+║    ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝                  ║
+║                                                               ║
+║               АВТОМАТИЧЕСКАЯ УСТАНОВКА                        ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+EOF
+echo -e "${NC}\n"
+
+print_info "Этот скрипт установит и настроит весь проект автоматически"
+print_info "Время установки: ~5-10 минут\n"
+
+# =============================================================================
+# ШАГ 1: ПРОВЕРКА СИСТЕМЫ
+# =============================================================================
+
+print_step "ШАГ 1/10: Проверка системы"
+
+# Проверка macOS
+if [[ "$OSTYPE" != "darwin"* ]]; then
+    print_error "Этот скрипт предназначен для macOS"
+    print_info "Для Windows используйте install.bat"
+    print_info "Для Linux адаптируйте команды для вашего дистрибутива"
+    exit 1
 fi
-success "Composer установлен"
 
-# Проверка Node.js
-if ! command -v node &> /dev/null; then
-    error "Node.js не установлен! Установите Node.js: brew install node"
+print_success "macOS обнаружен: $(sw_vers -productVersion)"
+
+# =============================================================================
+# ШАГ 2: ПРОВЕРКА И УСТАНОВКА HOMEBREW
+# =============================================================================
+
+print_step "ШАГ 2/10: Проверка Homebrew"
+
+if ! command -v brew &> /dev/null; then
+    print_warning "Homebrew не установлен. Устанавливаю..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    # Добавление Homebrew в PATH для Apple Silicon
+    if [[ $(uname -m) == 'arm64' ]]; then
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+    
+    print_success "Homebrew установлен"
+else
+    print_success "Homebrew уже установлен: $(brew --version | head -n1)"
 fi
-NODE_VERSION=$(node -v)
-success "Node.js $NODE_VERSION установлен"
 
-# Проверка npm
-if ! command -v npm &> /dev/null; then
-    error "npm не установлен! Переустановите Node.js"
-fi
-success "npm установлен"
+# =============================================================================
+# ШАГ 3: ПРОВЕРКА И УСТАНОВКА PHP
+# =============================================================================
 
-# Проверка MySQL
-if ! command -v mysql &> /dev/null; then
-    warning "MySQL не найден в PATH"
-    # Проверяем стандартное место установки
-    if [ -f "/usr/local/mysql/bin/mysql" ]; then
-        export PATH="/usr/local/mysql/bin:$PATH"
-        success "MySQL найден в /usr/local/mysql/bin/"
-    else
-        error "MySQL не установлен! Установите MySQL Community Server"
+print_step "ШАГ 3/10: Проверка PHP"
+
+if command -v php &> /dev/null; then
+    PHP_VERSION=$(php -v | head -n1 | cut -d" " -f2 | cut -d"." -f1,2)
+    print_success "PHP уже установлен: $(php -v | head -n1)"
+    
+    # Проверка версии PHP
+    if (( $(echo "$PHP_VERSION < 8.2" | bc -l) )); then
+        print_warning "Требуется PHP >= 8.2. Устанавливаю PHP 8.3..."
+        brew install php@8.3
+        brew link php@8.3 --force --overwrite
     fi
 else
-    success "MySQL установлен"
+    print_warning "PHP не найден. Устанавливаю PHP 8.3..."
+    brew install php@8.3
+    brew link php@8.3 --force --overwrite
 fi
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "📦 Устанавливаю зависимости проекта..."
-echo ""
+# Проверка расширений PHP
+print_info "Проверка расширений PHP..."
+REQUIRED_EXTENSIONS=("pdo_mysql" "mbstring" "xml" "curl" "zip")
+MISSING_EXTENSIONS=()
 
-# Установка PHP зависимостей
-info "Устанавливаю PHP зависимости (Composer)..."
-if composer install --no-interaction; then
-    success "PHP зависимости установлены"
+for ext in "${REQUIRED_EXTENSIONS[@]}"; do
+    if ! php -m | grep -qi "^$ext$" 2>/dev/null; then
+        MISSING_EXTENSIONS+=("$ext")
+    fi
+done
+
+if [ ${#MISSING_EXTENSIONS[@]} -gt 0 ]; then
+    print_warning "Недостающие расширения: ${MISSING_EXTENSIONS[*]}"
+    print_info "Они обычно включены в PHP из Homebrew"
+fi
+
+print_success "PHP готов: $(php -v | head -n1 | awk '{print $2}')"
+
+# =============================================================================
+# ШАГ 4: ПРОВЕРКА И УСТАНОВКА COMPOSER
+# =============================================================================
+
+print_step "ШАГ 4/10: Проверка Composer"
+
+if ! command -v composer &> /dev/null; then
+    print_warning "Composer не установлен. Устанавливаю..."
+    brew install composer
+    print_success "Composer установлен"
 else
-    error "Не удалось установить PHP зависимости"
+    print_success "Composer уже установлен: $(composer --version --no-ansi | head -n1)"
 fi
 
-echo ""
+# =============================================================================
+# ШАГ 5: ПРОВЕРКА И УСТАНОВКА NODE.JS
+# =============================================================================
 
-# Установка Node.js зависимостей
-info "Устанавливаю Node.js зависимости (npm)..."
-if npm install; then
-    success "Node.js зависимости установлены"
+print_step "ШАГ 5/10: Проверка Node.js и npm"
+
+if ! command -v node &> /dev/null; then
+    print_warning "Node.js не установлен. Устанавливаю..."
+    brew install node
+    print_success "Node.js установлен"
 else
-    error "Не удалось установить Node.js зависимости"
+    print_success "Node.js уже установлен: $(node -v)"
 fi
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "⚙️  Настраиваю конфигурацию..."
-echo ""
-
-# Создание .env файла
-if [ ! -f .env ]; then
-    info "Создаю файл .env..."
-    cp .env.example .env
-    success "Файл .env создан"
+if ! command -v npm &> /dev/null; then
+    print_error "npm не найден!"
+    exit 1
 else
-    warning "Файл .env уже существует, пропускаю"
+    print_success "npm готов: $(npm -v)"
 fi
 
-# Генерация ключа приложения
-info "Генерирую ключ приложения..."
-php artisan key:generate --no-interaction
-success "Ключ приложения сгенерирован"
+# =============================================================================
+# ШАГ 6: ПРОВЕРКА И УСТАНОВКА MYSQL
+# =============================================================================
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "🗄️  Настройка базы данных..."
+print_step "ШАГ 6/10: Проверка MySQL"
+
+MYSQL_INSTALLED=false
+
+# Проверка MySQL через Homebrew
+if brew list mysql 2>/dev/null | grep -q mysql; then
+    MYSQL_INSTALLED=true
+    MYSQL_PATH="/usr/local/bin/mysql"
+    print_success "MySQL из Homebrew обнаружен"
+fi
+
+# Проверка официального MySQL
+if [ -f "/usr/local/mysql/bin/mysql" ]; then
+    MYSQL_INSTALLED=true
+    MYSQL_PATH="/usr/local/mysql/bin/mysql"
+    print_success "Официальный MySQL обнаружен"
+fi
+
+# Проверка через команду mysql
+if command -v mysql &> /dev/null; then
+    MYSQL_INSTALLED=true
+    MYSQL_PATH=$(which mysql)
+    print_success "MySQL найден: $(mysql --version 2>/dev/null | head -n1)"
+fi
+
+if [ "$MYSQL_INSTALLED" = false ]; then
+    print_warning "MySQL не установлен"
+    print_info "Варианты установки:"
+    echo "  1) Homebrew: brew install mysql"
+    echo "  2) Официальный: https://dev.mysql.com/downloads/mysql/"
+    echo ""
+    read -p "Установить MySQL через Homebrew? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        brew install mysql
+        brew services start mysql
+        print_success "MySQL установлен и запущен"
+    else
+        print_error "MySQL необходим для работы проекта"
+        print_info "Установите MySQL вручную и запустите скрипт снова"
+        exit 1
+    fi
+fi
+
+# Проверка, запущен ли MySQL
+if ! pgrep -x "mysqld" > /dev/null; then
+    print_warning "MySQL не запущен. Пытаюсь запустить..."
+    
+    # Попытка запустить через Homebrew
+    if brew services list | grep -q mysql; then
+        brew services start mysql
+        sleep 3
+    # Попытка запустить официальный MySQL
+    elif [ -f "/usr/local/mysql/support-files/mysql.server" ]; then
+        sudo /usr/local/mysql/support-files/mysql.server start
+        sleep 3
+    fi
+    
+    if pgrep -x "mysqld" > /dev/null; then
+        print_success "MySQL успешно запущен"
+    else
+        print_error "Не удалось запустить MySQL автоматически"
+        print_info "Запустите MySQL вручную:"
+        echo "  - System Preferences → MySQL → Start MySQL Server"
+        echo "  - или: brew services start mysql"
+        exit 1
+    fi
+else
+    print_success "MySQL уже запущен"
+fi
+
+# =============================================================================
+# ШАГ 7: УСТАНОВКА ЗАВИСИМОСТЕЙ ПРОЕКТА
+# =============================================================================
+
+print_step "ШАГ 7/10: Установка зависимостей"
+
+# Проверка наличия composer.json
+if [ ! -f "composer.json" ]; then
+    print_error "composer.json не найден!"
+    print_info "Убедитесь, что вы находитесь в корневой директории проекта"
+    exit 1
+fi
+
+print_info "Устанавливаю PHP зависимости через Composer..."
+composer install --no-interaction --prefer-dist --optimize-autoloader
+
+print_success "PHP зависимости установлены"
+
+print_info "Устанавливаю JavaScript зависимости через npm..."
+npm install --silent
+
+print_success "JavaScript зависимости установлены"
+
+# =============================================================================
+# ШАГ 8: НАСТРОЙКА .ENV ФАЙЛА
+# =============================================================================
+
+print_step "ШАГ 8/10: Настройка окружения (.env)"
+
+if [ ! -f ".env" ]; then
+    if [ -f ".env.example" ]; then
+        print_info "Копирую .env.example в .env..."
+        cp .env.example .env
+        print_success ".env файл создан"
+    else
+        print_error ".env.example не найден!"
+        exit 1
+    fi
+else
+    print_warning ".env файл уже существует"
+    read -p "Перезаписать существующий .env? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        cp .env.example .env
+        print_success ".env файл перезаписан"
+    else
+        print_info "Используем существующий .env файл"
+    fi
+fi
+
+# Генерация APP_KEY
+print_info "Генерирую APP_KEY..."
+php artisan key:generate --force --no-interaction
+print_success "APP_KEY сгенерирован"
+
+# Запрос настроек базы данных
+print_info "\nНастройка базы данных MySQL:"
 echo ""
 
-# Запрос параметров MySQL
-info "Сейчас нужно настроить подключение к MySQL"
-echo ""
-
-read -p "📝 Введите имя базы данных [food_order]: " DB_NAME
+read -p "Введите имя базы данных [food_order]: " DB_NAME
 DB_NAME=${DB_NAME:-food_order}
 
-read -p "📝 Введите пользователя MySQL [root]: " DB_USER
+read -p "Введите MySQL пользователя [root]: " DB_USER
 DB_USER=${DB_USER:-root}
 
-read -sp "🔑 Введите пароль MySQL: " DB_PASS
+read -sp "Введите MySQL пароль [оставьте пустым если нет]: " DB_PASS
 echo ""
 
-# Проверка подключения к MySQL
-info "Проверяю подключение к MySQL..."
-if mysql -u"$DB_USER" -p"$DB_PASS" -e "SELECT 1;" &> /dev/null; then
-    success "Подключение к MySQL успешно"
-else
-    error "Не удалось подключиться к MySQL. Проверьте имя пользователя и пароль"
-fi
+read -p "Введите MySQL хост [127.0.0.1]: " DB_HOST
+DB_HOST=${DB_HOST:-127.0.0.1}
 
-# Создание базы данных
-info "Создаю базу данных $DB_NAME..."
-mysql -u"$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>/dev/null
-if [ $? -eq 0 ]; then
-    success "База данных $DB_NAME создана"
-else
-    warning "База данных возможно уже существует"
-fi
+read -p "Введите MySQL порт [3306]: " DB_PORT
+DB_PORT=${DB_PORT:-3306}
 
 # Обновление .env файла
-info "Обновляю настройки базы данных в .env..."
-sed -i.bak "s/DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env
-sed -i.bak "s/DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" .env
-sed -i.bak "s/DB_USERNAME=.*/DB_USERNAME=$DB_USER/" .env
-sed -i.bak "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" .env
-rm -f .env.bak
-success "Настройки базы данных обновлены"
+print_info "Обновляю .env с настройками БД..."
 
+sed -i '' "s/^DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env
+sed -i '' "s/^DB_HOST=.*/DB_HOST=${DB_HOST}/" .env
+sed -i '' "s/^DB_PORT=.*/DB_PORT=${DB_PORT}/" .env
+sed -i '' "s/^DB_DATABASE=.*/DB_DATABASE=${DB_NAME}/" .env
+sed -i '' "s/^DB_USERNAME=.*/DB_USERNAME=${DB_USER}/" .env
+sed -i '' "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" .env
+
+print_success "Настройки БД обновлены"
+
+# Telegram настройки (опционально)
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "🏗️  Создаю таблицы и заполняю данными..."
-echo ""
+read -p "Настроить Telegram уведомления? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    read -p "Введите Telegram Bot Token: " TG_TOKEN
+    read -p "Введите Telegram Chat ID: " TG_CHAT_ID
+    
+    sed -i '' "s/^TELEGRAM_BOT_TOKEN=.*/TELEGRAM_BOT_TOKEN=${TG_TOKEN}/" .env
+    sed -i '' "s/^TELEGRAM_CHAT_ID=.*/TELEGRAM_CHAT_ID=${TG_CHAT_ID}/" .env
+    
+    print_success "Telegram настроен"
+fi
+
+# =============================================================================
+# ШАГ 9: СОЗДАНИЕ И НАСТРОЙКА БАЗЫ ДАННЫХ
+# =============================================================================
+
+print_step "ШАГ 9/10: Настройка базы данных"
+
+# Проверка подключения к MySQL
+print_info "Проверяю подключение к MySQL..."
+
+MYSQL_CMD="mysql -h${DB_HOST} -P${DB_PORT} -u${DB_USER}"
+if [ -n "$DB_PASS" ]; then
+    MYSQL_CMD="$MYSQL_CMD -p${DB_PASS}"
+fi
+
+if ! $MYSQL_CMD -e "SELECT 1;" &> /dev/null; then
+    print_error "Не удалось подключиться к MySQL"
+    print_info "Проверьте настройки в .env файле"
+    print_info "Пароль: ${DB_PASS:-<пусто>}"
+    exit 1
+fi
+
+print_success "Подключение к MySQL успешно"
+
+# Создание базы данных если не существует
+print_info "Создаю базу данных '${DB_NAME}'..."
+$MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>/dev/null || true
+print_success "База данных готова"
 
 # Запуск миграций
-info "Создаю таблицы в базе данных..."
-if php artisan migrate --no-interaction --force; then
-    success "Таблицы созданы"
+print_info "Выполняю миграции..."
+php artisan migrate --force --no-interaction
+
+if [ $? -eq 0 ]; then
+    print_success "Миграции выполнены успешно"
 else
-    error "Не удалось создать таблицы"
+    print_error "Ошибка при выполнении миграций"
+    print_info "Проверьте подключение к БД и попробуйте вручную: php artisan migrate"
+    exit 1
 fi
 
-echo ""
-
-# Заполнение тестовыми данными
-info "Заполняю базу тестовыми данными..."
-if php artisan db:seed --no-interaction --force; then
-    success "Тестовые данные добавлены"
-else
-    warning "Не удалось добавить тестовые данные"
+# Заполнение базы данных
+read -p "Заполнить БД тестовыми данными? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    print_info "Заполняю базу данных..."
+    php artisan db:seed --force --no-interaction
+    print_success "База данных заполнена тестовыми данными"
 fi
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "🎨 Собираю фронтенд..."
-echo ""
+# =============================================================================
+# ШАГ 10: СБОРКА FRONTEND
+# =============================================================================
 
-# Сборка фронтенда
-info "Компилирую CSS и JavaScript..."
-if npm run build; then
-    success "Фронтенд собран"
+print_step "ШАГ 10/10: Сборка frontend"
+
+print_info "Компилирую frontend ресурсы (Vite + Bootstrap 5)..."
+npm run build
+
+if [ $? -eq 0 ]; then
+    print_success "Frontend успешно скомпилирован"
 else
-    error "Не удалось собрать фронтенд"
+    print_warning "Ошибка при сборке frontend"
+    print_info "Попробуйте вручную: npm run build"
 fi
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║         ✅ УСТАНОВКА ЗАВЕРШЕНА! ✅      ║${NC}"
-echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
+# Создание символической ссылки для storage
+print_info "Создаю символическую ссылку для storage..."
+php artisan storage:link --force
+print_success "Storage настроен"
+
+# Оптимизация
+print_info "Оптимизирую приложение..."
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+print_success "Оптимизация завершена"
+
+# =============================================================================
+# ФИНАЛ: УСПЕШНАЯ УСТАНОВКА
+# =============================================================================
+
+clear
+echo -e "${GREEN}"
+cat << "EOF"
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║   ✓✓✓ УСТАНОВКА ЗАВЕРШЕНА УСПЕШНО! ✓✓✓                       ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+EOF
+echo -e "${NC}\n"
+
+print_success "Проект Food Order полностью настроен и готов к работе!"
 echo ""
 
-echo "🎉 Проект FoodOrder готов к использованию!"
+print_info "📊 ИНФОРМАЦИЯ О ПРОЕКТЕ:"
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "🚀 КАК ЗАПУСТИТЬ СЕРВЕР:"
-echo ""
-echo "   1. Запусти сервер командой:"
-echo -e "      ${BLUE}php artisan serve${NC}"
-echo ""
-echo "   2. Открой в браузере:"
-echo -e "      ${BLUE}http://127.0.0.1:8000${NC}"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "🔑 ДАННЫЕ ДЛЯ ВХОДА:"
-echo ""
-echo "   👤 Администратор:"
-echo -e "      Телефон: ${GREEN}+375293709505${NC}"
-echo -e "      Пароль:  ${GREEN}admin123${NC}"
-echo ""
-echo "   👥 Обычный пользователь:"
-echo "      Зарегистрируйся на сайте"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "💡 ПОЛЕЗНЫЕ КОМАНДЫ:"
-echo ""
-echo "   • Запустить сервер:"
-echo -e "     ${BLUE}php artisan serve${NC}"
-echo ""
-echo "   • Создать нового админа:"
-echo -e "     ${BLUE}php artisan make:admin${NC}"
-echo ""
-echo "   • Пересоздать базу данных:"
-echo -e "     ${BLUE}php artisan migrate:fresh --seed${NC}"
-echo ""
-echo "   • Пересобрать фронтенд:"
-echo -e "     ${BLUE}npm run build${NC}"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "📚 ДОКУМЕНТАЦИЯ:"
-echo ""
-echo "   • ПРОСТАЯ_ИНСТРУКЦИЯ.md - как пользоваться"
-echo "   • README.md - полная документация"
-echo "   • INSTALLATION.md - подробная установка"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo -e "${GREEN}✨ ПРИЯТНОГО ИСПОЛЬЗОВАНИЯ! ✨${NC}"
+echo "  📁 Директория:     $(pwd)"
+echo "  🐘 PHP версия:      $(php -v | head -n1 | awk '{print $2}')"
+echo "  🎼 Composer:        $(composer --version --no-ansi | head -n1 | awk '{print $3}')"
+echo "  📦 Node.js:         $(node -v)"
+echo "  🗄️  База данных:    ${DB_NAME} (MySQL)"
 echo ""
 
+print_info "🚀 КАК ЗАПУСТИТЬ ПРОЕКТ:"
+echo ""
+echo "  1️⃣  Запустить сервер разработки:"
+echo "     ${CYAN}php artisan serve${NC}"
+echo ""
+echo "  2️⃣  Или запустить всё сразу (сервер + Vite):"
+echo "     ${CYAN}composer run dev${NC}"
+echo ""
+echo "  3️⃣  Открыть в браузере:"
+echo "     ${CYAN}http://localhost:8000${NC}"
+echo ""
+
+print_info "👤 ТЕСТОВЫЕ АККАУНТЫ:"
+echo ""
+echo "  ${YELLOW}Администратор:${NC}"
+echo "  📱 Телефон: +375(29) 123-45-67"
+echo "  🔑 Пароль:  password"
+echo ""
+
+print_info "📚 ПОЛЕЗНЫЕ КОМАНДЫ:"
+echo ""
+echo "  • Создать админа:       ${CYAN}php artisan make:admin${NC}"
+echo "  • Очистить кеш:         ${CYAN}php artisan cache:clear${NC}"
+echo "  • Пересобрать frontend: ${CYAN}npm run build${NC}"
+echo "  • Просмотр логов:       ${CYAN}tail -f storage/logs/laravel.log${NC}"
+echo ""
+
+print_info "📖 ДОКУМЕНТАЦИЯ:"
+echo ""
+echo "  • README.md - основная информация"
+echo "  • INSTALLATION.md - детальная установка"
+echo "  • ПРОСТАЯ_ИНСТРУКЦИЯ.md - для начинающих"
+echo ""
+
+print_info "🎯 СЛЕДУЮЩИЕ ШАГИ:"
+echo ""
+echo "  1. Запустите сервер: ${CYAN}php artisan serve${NC}"
+echo "  2. Откройте http://localhost:8000"
+echo "  3. Войдите как администратор"
+echo "  4. Начните работу с проектом!"
+echo ""
+
+echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗"
+echo -e "║           🎉 Готово! Успехов с проектом! 🎉                  ║"
+echo -e "╚═══════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+
+# Предложение запустить сервер
+read -p "Запустить сервер сейчас? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    print_info "Запускаю сервер на http://localhost:8000..."
+    print_warning "Нажмите Ctrl+C для остановки"
+    sleep 2
+    php artisan serve
+fi
