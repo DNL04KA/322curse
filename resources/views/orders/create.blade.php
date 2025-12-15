@@ -148,12 +148,11 @@
                         <label for="delivery_time_select" class="form-label">Время доставки <span class="text-danger">*</span></label>
                         <select class="form-select @error('delivery_time_select') is-invalid @enderror"
                                 id="delivery_time_select" name="delivery_time_select" required>
-                            <option value="">Загрузка времени...</option>
+                            <option value="">Выберите время...</option>
                         </select>
                         @error('delivery_time_select')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <input type="hidden" id="delivery_time" name="delivery_time">
                     </div>
                     <div class="col-12">
                         <label for="notes" class="form-label">Комментарий к заказу</label>
@@ -182,11 +181,28 @@
 
 <script>
 function preparePhoneForSubmit() {
-    const countryCode = document.getElementById('country_code_input').value;
-    const phoneDigits = document.getElementById('phone').value.replace(/\D/g, ''); // Очищаем от форматирования
+    // Сначала проверяем время доставки
+    if (!validateDeliveryTime()) {
+        return false; // Останавливаем отправку формы
+    }
 
-    // Устанавливаем полное значение телефона
-    document.getElementById('phone').value = countryCode + phoneDigits;
+    const countryCode = document.getElementById('country_code_input').value;
+    const phoneInput = document.getElementById('phone');
+
+    // Получаем только цифры из телефона
+    const phoneDigits = phoneInput.value.replace(/\D/g, '');
+
+    // Для Беларуси форматируем как +375(XX) XXX-XX-XX
+    if (countryCode === '+375' && phoneDigits.length === 9) {
+        phoneInput.value = countryCode + '(' + phoneDigits.slice(0, 2) + ') ' +
+                          phoneDigits.slice(2, 5) + '-' +
+                          phoneDigits.slice(5, 7) + '-' +
+                          phoneDigits.slice(7, 9);
+    } else {
+        // Для остальных стран просто код + цифры
+        phoneInput.value = countryCode + phoneDigits;
+    }
+
     return true;
 }
 
@@ -218,22 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Форматы номеров по странам
         const placeholders = {
-            '+375': '(29) 123-45-67',    // Беларусь - 9 цифр
-            '+7': '9001234567 (10 цифр)',   // Россия - 10 цифр
-            '+48': '500123456 (9 цифр)',    // Польша - 9 цифр
-            '+49': '1701234567 (12 цифр)',  // Германия - 12 цифр
-            '+1': '5551234567 (10 цифр)'    // США - 10 цифр
-            '+351': '912 345 678',       // Португалия
-            '+30': '691 234 5678',       // Греция
-            '+90': '530 123 45 67',      // Турция
-            '+81': '90 1234 5678',       // Япония
-            '+86': '139 1234 5678',      // Китай
-            '+82': '10 1234 5678',       // Южная Корея
-            '+66': '81 234 5678',        // Таиланд
-            '+84': '90 123 45 67',       // Вьетнам
-            '+91': '98765 43210',        // Индия
-            '+971': '50 123 4567',       // ОАЭ
-            '+966': '50 123 4567'        // Саудовская Аравия
+            '+375': '(29) 123-45-67',           // Беларусь - 9 цифр
+            '+7': '9001234567 (10 цифр)',       // Россия - 10 цифр
+            '+48': '500123456 (9 цифр)',        // Польша - 9 цифр
+            '+49': '1701234567 (12 цифр)',      // Германия - 12 цифр
+            '+1': '5551234567 (10 цифр)'        // США - 10 цифр
         };
 
         phoneInput.placeholder = placeholders[countryCode] || "Введите номер телефона";
@@ -347,60 +352,83 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-    // Функция для обновления скрытого поля delivery_time
-    function updateDeliveryTime() {
-        const date = document.getElementById('delivery_date').value;
-        const timeSelect = document.getElementById('delivery_time_select').value;
-
-        if (date && timeSelect) {
-            const deliveryTime = `${date}T${timeSelect}:00`;
-            document.getElementById('delivery_time').value = deliveryTime;
-        } else {
-            document.getElementById('delivery_time').value = '';
-        }
-    }
-
-    // Функция для обновления доступных вариантов времени
-    // Простая функция для заполнения времени
+    // Функция для заполнения времени доставки
     function populateTimeSelect() {
         const timeSelect = document.getElementById('delivery_time_select');
         const dateInput = document.getElementById('delivery_date');
 
         if (!timeSelect || !dateInput) {
-            console.error('Time or date elements not found');
             return;
         }
 
         // Очищаем селект
-        timeSelect.innerHTML = '';
+        timeSelect.innerHTML = '<option value="">Выберите время...</option>';
 
-        // Получаем текущее время + 1 час
-        const now = new Date();
-        const defaultTime = new Date(now.getTime() + 60 * 60 * 1000); // +1 час
+        // Получаем выбранную дату
+        const selectedDate = new Date(dateInput.value + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        // Создаем варианты времени с шагом 15 минут от 9:00 до 23:00
-        for (let hour = 9; hour <= 23; hour++) {
-            for (let minute = 0; minute < 60; minute += 15) {
+        // Определяем минимальное время для выбора
+        let minTime = null;
+        if (selectedDate.getTime() === today.getTime()) {
+            // Сегодня - минимум через 1 час
+            const now = new Date();
+            minTime = new Date(now.getTime() + 60 * 60 * 1000); // +1 час
+        }
+        // Для будущих дат minTime остается null - доступны все времена
+
+        // Создаем варианты времени с шагом 30 минут от 9:00 до 22:30
+        let selectedIndex = -1;
+        
+        // Округляем минимальное время до ближайших 30 минут вверх
+        let defaultTime = '09:00';
+        if (minTime) {
+            const minHour = minTime.getHours();
+            const minMinute = minTime.getMinutes();
+            
+            // Если минуты от 0 до 29 - округляем до :30 этого часа
+            // Если минуты от 30 до 59 - округляем до :00 следующего часа
+            if (minMinute <= 30) {
+                defaultTime = `${minHour.toString().padStart(2, '0')}:30`;
+            } else {
+                const nextHour = minHour + 1;
+                defaultTime = `${nextHour.toString().padStart(2, '0')}:00`;
+            }
+        }
+
+        for (let hour = 9; hour <= 22; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
                 const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+
+                // Проверяем, доступно ли это время для сегодняшней даты
+                if (minTime) {
+                    const optionTime = new Date(selectedDate);
+                    optionTime.setHours(hour, minute, 0, 0);
+
+                    if (optionTime < minTime) {
+                        continue; // Пропускаем время раньше минимального
+                    }
+                }
+
                 const option = document.createElement('option');
                 option.value = timeString;
                 option.textContent = timeString;
 
-                // Выделяем время ближайшее к текущему + 1 час
-                const optionTime = new Date();
-                optionTime.setHours(hour, minute, 0, 0);
-
-                if (Math.abs(optionTime - defaultTime) < 15 * 60 * 1000) { // 15 минут в миллисекундах
+                // Выбираем ближайшее доступное время
+                if (selectedIndex === -1 && timeString >= defaultTime) {
+                    selectedIndex = timeSelect.options.length;
                     option.selected = true;
                 }
 
                 timeSelect.appendChild(option);
             }
-
         }
 
-        console.log('Time select populated with', timeSelect.options.length, 'options');
-        updateDeliveryTime();
+        // Если не нашли подходящего времени, выбираем первый доступный вариант
+        if (timeSelect.options.length > 1 && selectedIndex === -1) {
+            timeSelect.selectedIndex = 1; // Пропускаем "Выберите время..."
+        }
     }
 
     // Заполнение данных авторизованного пользователя
@@ -439,9 +467,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
     @endif
 
+    // Функция для проверки и валидации времени доставки
+    function validateDeliveryTime() {
+        const dateInput = document.getElementById('delivery_date');
+        const timeSelect = document.getElementById('delivery_time_select');
+
+        if (!dateInput || !timeSelect || !dateInput.value || !timeSelect.value) {
+            return true; // Не проверяем, если поля пустые
+        }
+
+        const selectedDate = new Date(dateInput.value + 'T00:00:00');
+        const selectedTime = timeSelect.value;
+        const [hours, minutes] = selectedTime.split(':').map(Number);
+
+        const deliveryDateTime = new Date(selectedDate);
+        deliveryDateTime.setHours(hours, minutes, 0, 0);
+
+        const now = new Date();
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+
+        // Проверка на прошедшую дату
+        if (selectedDate < today) {
+            alert('Нельзя выбрать дату раньше сегодняшней!');
+            dateInput.value = today.toISOString().split('T')[0];
+            populateTimeSelect();
+            return false;
+        }
+
+        // Проверка времени для сегодняшней даты
+        if (selectedDate.getTime() === today.getTime()) {
+            const minTime = new Date(now.getTime() + 60 * 60 * 1000); // +1 час
+
+            if (deliveryDateTime < minTime) {
+                alert('Время доставки на сегодня должно быть не раньше чем через 1 час от текущего времени!');
+                populateTimeSelect(); // Перезаполняем время
+                return false;
+            }
+        }
+
+        // Проверка рабочего времени (9:00 - 23:00)
+        if (hours < 9 || hours >= 23) {
+            alert('Доставка осуществляется только с 9:00 до 23:00!');
+            return false;
+        }
+
+        return true;
+    }
+
     // Проверка даты и обновление времени
     document.getElementById('delivery_date').addEventListener('change', function(e) {
-        const selectedDate = new Date(this.value);
+        const selectedDate = new Date(this.value + 'T00:00:00');
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -452,23 +528,22 @@ document.addEventListener('DOMContentLoaded', function() {
         populateTimeSelect();
     });
 
-    document.getElementById('delivery_time_select').addEventListener('change', updateDeliveryTime);
+    // Проверка времени при изменении
+    document.getElementById('delivery_time_select').addEventListener('change', function(e) {
+        validateDeliveryTime();
+    });
 
-    // Инициализация времени
-    function initTimeSelection() {
-        console.log('Initializing time selection...');
-
-        // Заполняем время сразу
+    // Инициализация времени при загрузке страницы
+    // Проверяем, что поле даты заполнено
+    const dateInput = document.getElementById('delivery_date');
+    if (dateInput && dateInput.value) {
         populateTimeSelect();
-
-        // Обновляем при изменении даты
-        document.getElementById('delivery_date').addEventListener('change', function() {
-            populateTimeSelect();
-        });
+    } else if (dateInput) {
+        // Если дата не выбрана, устанавливаем сегодняшнюю дату
+        const today = new Date();
+        dateInput.value = today.toISOString().split('T')[0];
+        populateTimeSelect();
     }
-
-    // Запускаем после загрузки страницы
-    initTimeSelection();
 });
 </script>
-@endsection@endsection
+@endsection

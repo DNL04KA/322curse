@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PhoneHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -37,9 +38,10 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email,'.$user->id,
-            'phone' => 'required|string|max:20|unique:users,phone,'.$user->id,
+            'phone' => 'required|string|max:50|unique:users,phone,'.$user->id,
         ]);
 
+        // Телефон уже приходит отформатированным от пользователя
         $user->update($validated);
 
         return redirect()->route('profile.show')

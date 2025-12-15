@@ -6,6 +6,7 @@ use App\Models\Dish;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\TelegramService;
+use App\Helpers\PhoneHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -80,8 +81,24 @@ class OrderController extends Controller
         // Дополнительная валидация времени доставки
         if ($deliveryTime) {
             $deliveryDateTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $deliveryTime);
-            if ($deliveryDateTime->isBefore(now()->addHour())) {
-                return back()->withErrors(['delivery_time' => 'Время доставки должно быть не раньше чем через 1 час от текущего времени.'])->withInput();
+            $now = now();
+
+            // Если заказ на сегодня, проверяем что время не раньше чем через 1 час
+            if ($deliveryDateTime->isToday()) {
+                if ($deliveryDateTime->isBefore($now->addHour())) {
+                    return back()->withErrors(['delivery_time' => 'Время доставки на сегодня должно быть не раньше чем через 1 час от текущего времени.'])->withInput();
+                }
+            } else {
+                // Для будущих дат проверяем что время не в прошлом
+                if ($deliveryDateTime->isBefore($now)) {
+                    return back()->withErrors(['delivery_time' => 'Нельзя выбрать время в прошлом.'])->withInput();
+                }
+            }
+
+            // Проверяем рабочее время (9:00 - 23:00)
+            $hour = $deliveryDateTime->hour;
+            if ($hour < 9 || $hour >= 23) {
+                return back()->withErrors(['delivery_time' => 'Доставка осуществляется только с 9:00 до 23:00.'])->withInput();
             }
         }
 
@@ -133,12 +150,8 @@ class OrderController extends Controller
             return redirect()->route('cart.index')->with('error', 'Корзина пуста или все блюда недоступны!');
         }
 
-        // Форматируем номер телефона
-        $countryCode = $request->country_code;
-        if (! str_starts_with($countryCode, '+')) {
-            $countryCode = '+'.$countryCode;
-        }
-        $formattedPhone = $countryCode.' '.$request->phone;
+        // Форматируем номер телефона правильно
+        $formattedPhone = PhoneHelper::format($request->country_code, $request->phone);
 
         // Собираем полный адрес доставки
         $deliveryAddress = $request->city.', '.$request->street;

@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
 // Аутентификация с rate limiting
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])
-    ->middleware('throttle:5,1'); // 5 попыток в минуту
+    ->middleware('throttle:10,1'); // 10 попыток в минуту
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])
@@ -70,6 +70,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Управление пользователями
     Route::resource('users', \App\Http\Controllers\AdminUserController::class);
     Route::patch('/users/{user}/toggle-admin', [\App\Http\Controllers\AdminUserController::class, 'toggleAdmin'])->name('users.toggle-admin');
+
+    // Управление ресторанами
+    Route::resource('restaurants', \App\Http\Controllers\Admin\RestaurantController::class);
+
+    // Управление блюдами
+    Route::resource('dishes', \App\Http\Controllers\Admin\DishController::class);
 });
 
 // Маршруты для создания тестовых пользователей удалены для безопасности

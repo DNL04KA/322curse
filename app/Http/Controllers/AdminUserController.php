@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Helpers\PhoneHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -35,15 +36,22 @@ class AdminUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255|unique:users',
-            'full_phone' => 'required|string|max:50|unique:users,phone',
+            'full_phone' => 'required|string|max:50',
             'password' => 'required|string|min:8|confirmed',
             'is_admin' => 'boolean',
         ]);
 
+        // Проверяем уникальность телефона
+        $existingUser = User::where('phone', $request->full_phone)->first();
+        if ($existingUser) {
+            return back()->withErrors(['full_phone' => 'Пользователь с таким номером телефона уже зарегистрирован.'])->withInput();
+        }
+
+        // full_phone уже приходит отформатированный из JavaScript как +375(29) 123-45-67
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => $request->full_phone,
+            'phone' => $request->full_phone, // Сохраняем как есть
             'password' => Hash::make($request->password),
             'is_admin' => $request->boolean('is_admin'),
             'phone_verified_at' => now(),

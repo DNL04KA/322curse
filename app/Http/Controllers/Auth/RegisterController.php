@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Helpers\PhoneHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -32,20 +33,22 @@ class RegisterController extends Controller
             'password.regex' => 'Пароль должен содержать минимум одну прописную букву, одну заглавную букву и одну цифру.',
         ]);
 
-        // Проверяем уникальность полного номера телефона
-        $fullPhone = $request->country_code.$request->phone;
-        $existingUser = User::where('phone', $fullPhone)->first();
+        // Форматируем телефон правильно
+        $formattedPhone = PhoneHelper::format($request->country_code, $request->phone);
+
+        // Проверяем уникальность телефона
+        $existingUser = User::where('phone', $formattedPhone)->first();
         if ($existingUser) {
             return back()->withErrors(['phone' => 'Пользователь с таким номером телефона уже зарегистрирован.'])->withInput();
         }
 
-        // Создаем пользователя напрямую без верификации
+        // Создаем пользователя
         $user = User::create([
             'name' => $request->name,
-            'phone' => $fullPhone,
+            'phone' => $formattedPhone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'phone_verified_at' => now(), // Автоматически верифицируем
+            'phone_verified_at' => now(),
         ]);
 
         // Автоматически авторизуем пользователя

@@ -17,13 +17,6 @@
                 </div>
             </div>
 
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
@@ -138,7 +131,9 @@
                             </table>
                         </div>
 
-                        {{ $users->links() }}
+                        <div class="mt-4 d-flex justify-content-center">
+                            {{ $users->onEachSide(1)->links('pagination::bootstrap-5') }}
+                        </div>
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-users fa-3x text-muted mb-3"></i>

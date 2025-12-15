@@ -1,0 +1,182 @@
+@startuml Диаграмма_2.2_Use_Case_FINAL_v2
+
+' Идеальные настройки для чистой диаграммы
+skinparam usecaseBackgroundColor White
+skinparam usecaseBorderColor Black
+skinparam actorBackgroundColor White
+skinparam actorBorderColor Black
+skinparam packageBorderColor Black
+skinparam arrowColor Black
+skinparam defaultFontSize 9
+skinparam shadowing false
+skinparam linetype ortho
+
+' Актеры по бокам
+actor Пользователь as User
+actor Администратор as Admin
+
+rectangle "Веб-приложение сервиса доставки еды" {
+
+  ' Колонка 1: Аутентификация
+  package "Аутентификация" {
+    usecase "Регистрация" as UC1
+    usecase "Вход в\nаккаунт" as UC2
+    usecase "Проверить\nучетные\nданные" as INC1 <<include>>
+  }
+  
+  ' Колонка 2: Просмотр каталога
+  package "Каталог" {
+    usecase "Просмотреть\nрестораны" as UC3
+    usecase "Просмотреть\nменю" as UC4
+    usecase "Просмотреть\nблюдо" as UC5
+    usecase "Искать\nблюда" as EXT1 <<extend>>
+    usecase "Фильтровать\nпо категориям" as EXT2 <<extend>>
+  }
+  
+  ' Колонка 3: Корзина и заказ
+  package "Заказы" {
+    usecase "Добавить\nв корзину" as UC6
+    usecase "Просмотреть\nкорзину" as UC7
+    usecase "Оформить\nзаказ" as UC8
+    usecase "Отследить\nстатус" as UC9
+    usecase "Просмотреть\nисторию" as UC10
+    usecase "Изменить\nколичество" as EXT3 <<extend>>
+    usecase "Удалить\nиз корзины" as EXT4 <<extend>>
+    usecase "Указать\nадрес\nдоставки" as INC2 <<include>>
+    usecase "Рассчитать\nитоговую\nсумму" as INC3 <<include>>
+  }
+  
+  ' Колонка 4: Профиль
+  package "Профиль" {
+    usecase "Просмотреть\nпрофиль" as UC11
+    usecase "Редактировать\nпрофиль" as UC12
+    usecase "Изменить\nпароль" as UC13
+    usecase "Проверить\nтекущий\nпароль" as INC4 <<include>>
+    usecase "Загрузить\nстатистику" as INC5 <<include>>
+  }
+  
+  ' Колонка 5: Управление заказами (Админ)
+  package "Управление\nзаказами" {
+    usecase "Управлять\nзаказами" as ADM1
+    usecase "Изменить\nстатус\nзаказа" as ADM_INC1 <<include>>
+    usecase "Отправить\nв Telegram" as ADM_EXT1 <<extend>>
+  }
+  
+  ' Колонка 6: Управление пользователями (Админ)
+  package "Управление\nпользователями" {
+    usecase "Управлять\nпользователями" as ADM2
+    usecase "Создать\nпользователя" as ADM_EXT2 <<extend>>
+    usecase "Назначить\nадмина" as ADM_EXT3 <<extend>>
+    usecase "Удалить\nпользователя" as ADM_EXT4 <<extend>>
+  }
+  
+  ' Колонка 7: Управление ресторанами (Админ)
+  package "Управление\nресторанами" {
+    usecase "Управлять\nресторанами" as ADM3
+    usecase "Добавить\nресторан" as ADM_REST1 <<extend>>
+    usecase "Редактировать\nресторан" as ADM_REST2 <<extend>>
+    usecase "Удалить\nресторан" as ADM_REST3 <<extend>>
+  }
+  
+  ' Колонка 8: Управление меню (Админ)
+  package "Управление\nменю" {
+    usecase "Управлять\nменю" as ADM4
+    usecase "Добавить\nблюдо" as ADM_DISH1 <<extend>>
+    usecase "Редактировать\nблюдо" as ADM_DISH2 <<extend>>
+    usecase "Удалить\nблюдо" as ADM_DISH3 <<extend>>
+    usecase "Изменить\nдоступность" as ADM_DISH4 <<extend>>
+  }
+
+}
+
+' ====== СВЯЗИ ПОЛЬЗОВАТЕЛЯ (СЛЕВА) ======
+
+' Аутентификация
+User --> UC1
+User --> UC2
+
+' Каталог
+User --> UC3
+User --> UC4
+User --> UC5
+
+' Заказы
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+
+' Профиль
+User --> UC11
+User --> UC12
+User --> UC13
+
+' ====== СВЯЗИ АДМИНИСТРАТОРА (СПРАВА) ======
+
+' Управление заказами
+Admin --> ADM1
+
+' Управление пользователями
+Admin --> ADM2
+
+' Управление ресторанами
+Admin --> ADM3
+
+' Управление меню
+Admin --> ADM4
+
+' Наследование: Администратор - это тоже Пользователь
+Admin --|> User
+
+' ====== INCLUDE СВЯЗИ (ОБЯЗАТЕЛЬНЫЕ) ======
+
+' Аутентификация
+UC2 ..> INC1 : <<include>>
+
+' Заказы
+UC8 ..> INC2 : <<include>>
+UC8 ..> INC3 : <<include>>
+
+' Профиль
+UC11 ..> INC5 : <<include>>
+UC13 ..> INC4 : <<include>>
+
+' Админ: Управление заказами
+ADM1 ..> ADM_INC1 : <<include>>
+
+' ====== EXTEND СВЯЗИ (ОПЦИОНАЛЬНЫЕ) ======
+
+' Каталог
+UC4 <.. EXT1 : <<extend>>
+UC4 <.. EXT2 : <<extend>>
+
+' Корзина
+UC7 <.. EXT3 : <<extend>>
+UC7 <.. EXT4 : <<extend>>
+
+' Профиль
+UC11 <.. UC12 : <<extend>>
+UC11 <.. UC13 : <<extend>>
+
+' Админ: Управление заказами
+ADM_INC1 <.. ADM_EXT1 : <<extend>>
+
+' Админ: Управление пользователями
+ADM2 <.. ADM_EXT2 : <<extend>>
+ADM2 <.. ADM_EXT3 : <<extend>>
+ADM2 <.. ADM_EXT4 : <<extend>>
+
+' Админ: Управление ресторанами
+ADM3 <.. ADM_REST1 : <<extend>>
+ADM3 <.. ADM_REST2 : <<extend>>
+ADM3 <.. ADM_REST3 : <<extend>>
+
+' Админ: Управление меню
+ADM4 <.. ADM_DISH1 : <<extend>>
+ADM4 <.. ADM_DISH2 : <<extend>>
+ADM4 <.. ADM_DISH3 : <<extend>>
+ADM4 <.. ADM_DISH4 : <<extend>>
+
+@enduml
+

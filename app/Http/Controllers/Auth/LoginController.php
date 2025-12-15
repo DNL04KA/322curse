@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\PhoneHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,29 +22,27 @@ class LoginController extends Controller
             'password' => 'required|string',
         ]);
 
-        // Форматируем номер телефона для поиска
-        $phoneValue = $request->country_code.$request->phone; // Без пробела
-        $phoneWithSpace = $request->country_code.' '.$request->phone; // С пробелом
+        // Форматируем телефон так же, как он хранится в БД
+        $formattedPhone = PhoneHelper::format($request->country_code, $request->phone);
 
-        // Ищем пользователя по разным вариантам форматирования
-        $user = \App\Models\User::where('phone', $phoneValue)->first(); // +37591234567
-        if (! $user) {
-            $user = \App\Models\User::where('phone', $phoneWithSpace)->first(); // +375 91234567
-        }
-        if (! $user) {
-            $user = \App\Models\User::where('phone', $request->phone)->first(); // 91234567
+        // Пробуем найти пользователя с отформатированным номером
+        $user = \App\Models\User::where('phone', $formattedPhone)->first();
+
+        // Если не нашли, пробуем другие варианты (для обратной совместимости)
+        if (!$user) {
+            $phoneDigits = preg_replace('/\D/', '', $request->phone);
+            $user = \App\Models\User::where('phone', 'LIKE', '%' . $phoneDigits)->first();
         }
 
         if ($user) {
             $credentials = [
-                'phone' => $user->phone, // Используем телефон как он хранится в БД
+                'phone' => $user->phone,
                 'password' => $request->password,
             ];
         } else {
-            $credentials = [
-                'phone' => $phoneValue,
-                'password' => $request->password,
-            ];
+            return back()->withErrors([
+                'phone' => 'Пользователь с таким номером телефона не найден.',
+            ])->onlyInput('phone');
         }
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {

@@ -487,6 +487,13 @@
                                     <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">
                                         <i class="fas fa-users"></i> Управление пользователями
                                     </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.restaurants.index') }}">
+                                        <i class="fas fa-store"></i> Управление ресторанами
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.dishes.index') }}">
+                                        <i class="fas fa-utensils"></i> Управление меню
+                                    </a></li>
                                 </ul>
                             </li>
                         @endif

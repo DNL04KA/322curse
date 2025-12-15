@@ -41,60 +41,10 @@
                                 <p class="card-text mb-4">{{ $dish->description }}</p>
                             @endif
 
-                            <!-- Питательная информация -->
-                            @if($dish->calories || $dish->protein || $dish->fat || $dish->carbs)
-                                <div class="card mb-4 border-info">
-                                    <div class="card-header bg-info text-white">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-chart-pie me-2"></i>Питательная ценность
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row text-center">
-                                            @if($dish->weight)
-                                                <div class="col-6 col-md-3 mb-3">
-                                                    <div class="h4 text-primary mb-1">{{ $dish->weight }}</div>
-                                                    <small class="text-muted">Граммовка</small>
-                                                </div>
-                                            @endif
-                                            @if($dish->calories)
-                                                <div class="col-6 col-md-3 mb-3">
-                                                    <div class="h4 text-warning mb-1">{{ $dish->calories }}</div>
-                                                    <small class="text-muted">Ккал</small>
-                                                </div>
-                                            @endif
-                                            @if($dish->protein)
-                                                <div class="col-4 col-md-2 mb-3">
-                                                    <div class="h5 text-success mb-1">{{ number_format($dish->protein, 1) }}</div>
-                                                    <small class="text-muted">Белки (г)</small>
-                                                </div>
-                                            @endif
-                                            @if($dish->fat)
-                                                <div class="col-4 col-md-2 mb-3">
-                                                    <div class="h5 text-danger mb-1">{{ number_format($dish->fat, 1) }}</div>
-                                                    <small class="text-muted">Жиры (г)</small>
-                                                </div>
-                                            @endif
-                                            @if($dish->carbs)
-                                                <div class="col-4 col-md-2 mb-3">
-                                                    <div class="h5 text-info mb-1">{{ number_format($dish->carbs, 1) }}</div>
-                                                    <small class="text-muted">Углеводы (г)</small>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
                             <!-- Цена -->
                             <div class="mb-4">
                                 <div class="d-flex align-items-center">
                                     <span class="h3 text-success mb-0 me-3">{{ number_format($dish->price, 2, ',', ' ') }} BYN</span>
-                                    @if($dish->weight && $dish->calories)
-                                        <small class="text-muted">
-                                            ≈ {{ number_format($dish->calories / $dish->weight * 100, 0) }} ккал/100г
-                                        </small>
-                                    @endif
                                 </div>
                             </div>
                         </div>

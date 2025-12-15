@@ -12,13 +12,6 @@
                 </a>
             </div>
 
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="fas fa-receipt"></i> История заказов</h5>
@@ -79,7 +72,9 @@
                             </table>
                         </div>
 
-                        {{ $orders->links() }}
+                        <div class="mt-4 d-flex justify-content-center">
+                            {{ $orders->onEachSide(1)->links('pagination::bootstrap-5') }}
+                        </div>
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-receipt fa-3x text-muted mb-3"></i>

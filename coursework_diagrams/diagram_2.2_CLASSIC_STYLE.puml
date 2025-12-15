@@ -1,0 +1,150 @@
+@startuml Диаграмма_2.2_Use_Case_CLASSIC
+
+' Классический стиль Use Case диаграммы
+skinparam usecaseBackgroundColor White
+skinparam usecaseBorderColor Black
+skinparam actorBackgroundColor White
+skinparam actorBorderColor Black
+skinparam packageBorderColor Black
+skinparam arrowColor Black
+skinparam defaultFontSize 10
+skinparam shadowing false
+
+' Отключаем ортогональные линии для естественного вида
+skinparam linetype polyline
+
+' АКТЁРЫ ПО КРАЯМ СНИЗУ
+actor "Пользователь" as User
+actor "Администратор" as Admin
+
+rectangle "Веб-приложение сервиса доставки еды" {
+
+  ' === РЯД 1 (СВЕРХУ): АУТЕНТИФИКАЦИЯ ===
+  usecase "Регистрация" as UC1
+  usecase "Вход в аккаунт" as UC2
+  usecase "Проверить\nучетные данные" as INC1
+  
+  ' === РЯД 2: ПРОСМОТР КАТАЛОГА ===
+  usecase "Просмотреть\nрестораны" as UC3
+  usecase "Просмотреть\nменю" as UC4
+  usecase "Просмотреть\nблюдо" as UC5
+  usecase "Искать блюда" as EXT1
+  usecase "Фильтровать\nпо категориям" as EXT2
+  
+  ' === РЯД 3: КОРЗИНА И ЗАКАЗЫ ===
+  usecase "Добавить\nв корзину" as UC6
+  usecase "Просмотреть\nкорзину" as UC7
+  usecase "Оформить заказ" as UC8
+  usecase "Изменить\nколичество" as EXT3
+  usecase "Удалить\nиз корзины" as EXT4
+  
+  ' === РЯД 4: ЗАКАЗЫ ===
+  usecase "Отследить\nстатус заказа" as UC9
+  usecase "Просмотреть\nисторию заказов" as UC10
+  usecase "Указать адрес\nдоставки" as INC2
+  usecase "Рассчитать\nитоговую сумму" as INC3
+  
+  ' === РЯД 5: ПРОФИЛЬ ===
+  usecase "Просмотреть\nпрофиль" as UC11
+  usecase "Редактировать\nпрофиль" as UC12
+  usecase "Изменить пароль" as UC13
+  usecase "Проверить\nтекущий пароль" as INC4
+  usecase "Загрузить\nстатистику" as INC5
+  
+  ' === РЯД 6: АДМИН - УПРАВЛЕНИЕ ЗАКАЗАМИ ===
+  usecase "Управлять\nзаказами" as ADM1
+  usecase "Изменить статус\nзаказа" as ADM_INC1
+  usecase "Отправить\nв Telegram" as ADM_EXT1
+  
+  ' === РЯД 7: АДМИН - УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ ===
+  usecase "Управлять\nпользователями" as ADM2
+  usecase "Создать\nпользователя" as ADM_EXT2
+  usecase "Назначить\nадмина" as ADM_EXT3
+  usecase "Удалить\nпользователя" as ADM_EXT4
+  
+  ' === РЯД 8: АДМИН - УПРАВЛЕНИЕ РЕСТОРАНАМИ ===
+  usecase "Управлять\nресторанами" as ADM3
+  usecase "Добавить\nресторан" as ADM_REST1
+  usecase "Редактировать\nресторан" as ADM_REST2
+  usecase "Удалить\nресторан" as ADM_REST3
+  
+  ' === РЯД 9 (СНИЗУ): АДМИН - УПРАВЛЕНИЕ МЕНЮ ===
+  usecase "Управлять меню" as ADM4
+  usecase "Добавить блюдо" as ADM_DISH1
+  usecase "Редактировать\nблюдо" as ADM_DISH2
+  usecase "Удалить блюдо" as ADM_DISH3
+  usecase "Изменить\nдоступность" as ADM_DISH4
+
+}
+
+' ============================================
+' СВЯЗИ ПОЛЬЗОВАТЕЛЯ (СЛЕВА)
+' ============================================
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+User --> UC13
+
+' ============================================
+' СВЯЗИ АДМИНИСТРАТОРА (СПРАВА)
+' ============================================
+
+Admin --> ADM1
+Admin --> ADM2
+Admin --> ADM3
+Admin --> ADM4
+
+' ============================================
+' НАСЛЕДОВАНИЕ
+' ============================================
+
+Admin -up-|> User
+
+' ============================================
+' INCLUDE СВЯЗИ (ПУНКТИРНЫЕ СТРЕЛКИ)
+' ============================================
+
+UC2 .up.> INC1 : <<include>>
+UC8 .up.> INC2 : <<include>>
+UC8 .up.> INC3 : <<include>>
+UC11 .up.> INC5 : <<include>>
+UC13 .up.> INC4 : <<include>>
+ADM1 .up.> ADM_INC1 : <<include>>
+
+' ============================================
+' EXTEND СВЯЗИ (ПУНКТИРНЫЕ СТРЕЛКИ)
+' ============================================
+
+EXT1 .up.> UC4 : <<extend>>
+EXT2 .up.> UC4 : <<extend>>
+EXT3 .up.> UC7 : <<extend>>
+EXT4 .up.> UC7 : <<extend>>
+UC12 .up.> UC11 : <<extend>>
+UC13 .up.> UC11 : <<extend>>
+
+ADM_EXT1 .up.> ADM_INC1 : <<extend>>
+ADM_EXT2 .up.> ADM2 : <<extend>>
+ADM_EXT3 .up.> ADM2 : <<extend>>
+ADM_EXT4 .up.> ADM2 : <<extend>>
+
+ADM_REST1 .up.> ADM3 : <<extend>>
+ADM_REST2 .up.> ADM3 : <<extend>>
+ADM_REST3 .up.> ADM3 : <<extend>>
+
+ADM_DISH1 .up.> ADM4 : <<extend>>
+ADM_DISH2 .up.> ADM4 : <<extend>>
+ADM_DISH3 .up.> ADM4 : <<extend>>
+ADM_DISH4 .up.> ADM4 : <<extend>>
+
+@enduml
+
